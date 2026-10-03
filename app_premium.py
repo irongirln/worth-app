@@ -1,4 +1,5 @@
 import streamlit as st
+import base64
 from pathlib import Path
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
@@ -460,9 +461,46 @@ div[class*="st-key-worth_menu_logout"] button p {color:#B56F85!important;-webkit
     .block-container {padding-left:14px;padding-right:14px;}
     .app-page-title {font-size:16px;}
 }
+
+/* TOAST WORTH: tengah atas + pink tua */
+div[data-testid="stToastContainer"] {
+    position: fixed !important;
+    top: 105px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: min(90vw, 420px) !important;
+}
+
+div[data-testid="stToast"],
+div[data-baseweb="toast"] {
+    background: #E83D7D !important;
+    border: none !important;
+    border-radius: 14px !important;
+    box-shadow: 0 8px 24px rgba(190, 35, 95, .22) !important;
+}
+
+div[data-testid="stToast"] *,
+div[data-baseweb="toast"] * {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+
+
+/* LOGO HOME: benar-benar di tengah */
+div[class*="st-key-home_logo_wrap"] div[data-testid="stImage"] {
+    display: flex !important;
+    justify-content: center !important;
+}
+
+div[class*="st-key-home_logo_wrap"] img {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 /* PESAN BERHASIL AKUN */
 .account-success {
-    background: #F47A49 !important;
+    background: #E83D7D !important;
 
     color: #FFFFFF !important;
     -webkit-text-fill-color: #FFFFFF !important;
@@ -471,11 +509,11 @@ div[class*="st-key-worth_menu_logout"] button p {color:#B56F85!important;-webkit
     font-weight: 600 !important;
 
     padding: 14px 16px !important;
-    margin: 10px 0 14px !important;
+    margin: 0 0 14px !important;
 
     border-radius: 12px !important;
 
-    box-shadow: 0 5px 14px rgba(244,122,73,.12) !important;
+    box-shadow: 0 5px 14px rgba(232,61,125,.18) !important;
 }
 
 .account-success * {
@@ -500,6 +538,76 @@ div[class*="st-key-account_email"] {
 .bot-bubble {
     margin-bottom: 14px !important;
 }
+
+/* RIWAYAT - tombol "Lihat detail" agar teks terlihat jelas */
+div[data-testid="stExpander"] {
+    border: 1px solid #F1CCD9 !important;
+    border-radius: 12px !important;
+    background: #FFF !important;
+}
+
+div[data-testid="stExpander"] details > summary {
+    background: #FFFFFF !important;
+    color: #302630 !important;
+    -webkit-text-fill-color: #302630 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="stExpander"] details > summary * {
+    color: #302630 !important;
+    -webkit-text-fill-color: #302630 !important;
+}
+
+div[data-testid="stExpander"] details[open] > summary {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] {
+    background: #FFF !important;
+    color: #302630 !important;
+    -webkit-text-fill-color: #302630 !important;
+}
+
+div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] * {
+    color: #302630 !important;
+    -webkit-text-fill-color: #302630 !important;
+}
+
+
+/* DETAIL PERBANDINGAN - tabel harus terbaca jelas */
+div[data-testid="stMarkdownContainer"] table {
+    width: 100% !important;
+    background: #FFFFFF !important;
+    color: #302630 !important;
+    border-collapse: collapse !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+div[data-testid="stMarkdownContainer"] table th {
+    background: #FFF1F6 !important;
+    color: #C92F6D !important;
+    -webkit-text-fill-color: #C92F6D !important;
+    font-weight: 800 !important;
+    border: 1px solid #F1CCD9 !important;
+    padding: 10px 8px !important;
+}
+
+div[data-testid="stMarkdownContainer"] table td {
+    background: #FFFFFF !important;
+    color: #302630 !important;
+    -webkit-text-fill-color: #302630 !important;
+    border: 1px solid #F1CCD9 !important;
+    padding: 10px 8px !important;
+}
+
+div[data-testid="stMarkdownContainer"] table td *,
+div[data-testid="stMarkdownContainer"] table th * {
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -1004,16 +1112,18 @@ def home_page():
     header()
 
     if LOGO.exists():
-        _, c2, _ = st.columns([1, 2.2, 1])
-        with c2:
-            st.image(str(LOGO), use_container_width=True)
+        logo_b64 = base64.b64encode(LOGO.read_bytes()).decode("utf-8")
+        logo_ext = LOGO.suffix.lower().lstrip(".")
+        logo_mime = "jpeg" if logo_ext in {"jpg", "jpeg"} else "png"
+        st.markdown(
+            f'<div style="width:100%;display:flex;justify-content:center;align-items:center;">'
+            f'<img src="data:image/{logo_mime};base64,{logo_b64}" '
+            f'style="width:100px;height:auto;display:block;margin:0 auto;">'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
     st.markdown('<div class="tagline">THINK TWICE BEFORE<br>YOU CHECKOUT.</div>', unsafe_allow_html=True)
-
-    if BOT.exists():
-        _, c2, _ = st.columns([1.2, 1.6, 1.2])
-        with c2:
-            st.image(str(BOT), use_container_width=True)
 
     st.markdown(
         '<div class="intro-box"><b>Hai! Aku WORTH,</b><br>'
@@ -1331,12 +1441,25 @@ def result_page():
             else:
                 go("limit")
 
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+    if st.button(
+        "🏠 KEMBALI KE HOME",
+        use_container_width=True,
+        key="result_home"
+    ):
+        reset_purchase("home")
+        st.rerun()
+
 
 def account_page():
     header("Akun Saya")
 
     if st.session_state.get("account_saved", False):
-        notify("Data akun berhasil diperbarui.")
+        st.markdown(
+            '<div class="account-success">✅&nbsp;&nbsp; Data akun berhasil diperbarui.</div>',
+            unsafe_allow_html=True,
+        )
         st.session_state.account_saved = False
 
     status = (
@@ -1401,19 +1524,20 @@ def account_page():
         clean_name = name.strip()
         clean_email = email.strip()
 
-        if clean_email and (
+        if not clean_name:
+            st.warning("Masukkan nama terlebih dahulu.")
+
+        elif not clean_email:
+            st.warning("Masukkan email terlebih dahulu.")
+
+        elif (
             "@" not in clean_email
             or "." not in clean_email.split("@")[-1]
         ):
             st.warning("Masukkan alamat email yang valid.")
 
         else:
-            st.session_state.name = (
-                clean_name
-                if clean_name
-                else "Pengguna WORTH"
-            )
-
+            st.session_state.name = clean_name
             st.session_state.email = clean_email
             st.session_state.account_saved = True
             st.rerun()
@@ -1430,7 +1554,10 @@ def premium_page():
     header("WORTH Premium")
 
     if st.session_state.get("premium_just_activated", False):
-        notify("WORTH Premium berhasil diaktifkan!", icon="👑")
+        st.markdown(
+            '<div class="account-success">👑&nbsp;&nbsp; WORTH Premium berhasil diaktifkan!</div>',
+            unsafe_allow_html=True,
+        )
         st.session_state.premium_just_activated = False
 
     if st.session_state.is_premium:
@@ -1538,7 +1665,13 @@ def compare_page():
         return f'{r["item"]} — {r["score"]}/100 ({r["risk"]})'
 
     a = st.selectbox("Produk pertama", options, format_func=label, key="cmp_a")
-    b = st.selectbox("Produk kedua", options, index=1 if len(options) > 1 else 0, format_func=label, key="cmp_b")
+    b = st.selectbox(
+        "Produk kedua",
+        options,
+        index=1 if len(options) > 1 else 0,
+        format_func=label,
+        key="cmp_b",
+    )
 
     if a == b:
         st.warning("Pilih dua produk yang berbeda.")
@@ -1547,10 +1680,61 @@ def compare_page():
     A = st.session_state.history[a]
     B = st.session_state.history[b]
 
+    # Tentukan rekomendasi lebih dulu agar hasil langsung terlihat
+    if A["score"] < B["score"]:
+        recommended = A
+        other = B
+    elif B["score"] < A["score"]:
+        recommended = B
+        other = A
+    else:
+        recommended = None
+        other = None
+
     st.markdown(
         '<div class="soft-card"><div class="compare-head">Hasil Perbandingan</div>'
-        'Perbandingan ini menampilkan hasil WORTH dari jawabanmu. '
-        'WORTH tidak menentukan produk mana yang harus dibeli.</div>',
+        'WORTH membandingkan kedua produk berdasarkan jawabanmu dan memberikan rekomendasi '
+        'berdasarkan WORTH Score serta tingkat risiko pembelian.</div>',
+        unsafe_allow_html=True,
+    )
+
+    # HASIL UTAMA langsung tampil di bawah judul
+    if recommended is not None:
+        score_gap = abs(A["score"] - B["score"])
+        recommendation_html = (
+            '<div class="soft-card" style="border:2px solid #E83D7D;background:#FFF0F6;'
+            'text-align:center;padding:22px 18px;">'
+            '<div style="font-size:14px;color:#8F7E88;font-weight:700;margin-bottom:7px;">'
+            '💗 REKOMENDASI WORTH</div>'
+            f'<div style="font-size:24px;color:#D81B60;font-weight:800;margin-bottom:10px;">'
+            f'{escape(str(recommended["item"]))}</div>'
+            f'<div style="font-size:15px;color:#302630;line-height:1.65;">'
+            f'WORTH Score <b>{recommended["score"]}/100</b> · '
+            f'<b>{escape(str(recommended["risk"]))}</b><br>'
+            f'Lebih rendah {score_gap} poin dibanding '
+            f'<b>{escape(str(other["item"]))}</b> ({other["score"]}/100).<br><br>'
+            'Berdasarkan jawabanmu, produk ini memiliki tingkat risiko pembelian yang lebih rendah.'
+            '</div></div>'
+        )
+        st.markdown(recommendation_html, unsafe_allow_html=True)
+    else:
+        tie_html = (
+            '<div class="soft-card" style="border:2px solid #E83D7D;background:#FFF0F6;'
+            'text-align:center;padding:22px 18px;">'
+            '<div style="font-size:14px;color:#8F7E88;font-weight:700;margin-bottom:7px;">'
+            '⚖️ HASIL WORTH</div>'
+            '<div style="font-size:22px;color:#D81B60;font-weight:800;margin-bottom:10px;">'
+            'Keduanya Seimbang</div>'
+            f'<div style="font-size:15px;color:#302630;line-height:1.65;">'
+            f'<b>{escape(str(A["item"]))}</b> dan <b>{escape(str(B["item"]))}</b> '
+            f'memiliki WORTH Score yang sama, yaitu <b>{A["score"]}/100</b>.<br><br>'
+            'Pertimbangkan harga, kebutuhan utama, dan produk yang akan lebih sering digunakan.'
+            '</div></div>'
+        )
+        st.markdown(tie_html, unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="section-title" style="margin-top:24px;">Detail Perbandingan</div>',
         unsafe_allow_html=True,
     )
 
