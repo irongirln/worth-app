@@ -699,19 +699,6 @@ div[data-testid="stForm"] div[data-testid="stTextInput"] label p {
     font-weight:700 !important;
 }
 
-/* Tombol mata password */
-div[data-testid="stForm"] div[data-testid="stTextInput"] button {
-    background:#FFFFFF !important;
-    color:#E83D7D !important;
-    -webkit-text-fill-color:#E83D7D !important;
-    border:none !important;
-    box-shadow:none !important;
-}
-
-div[data-testid="stForm"] div[data-testid="stTextInput"] button svg {
-    color:#E83D7D !important;
-    fill:#E83D7D !important;
-}
 
 .auth-helper {
     text-align:center;
@@ -819,27 +806,6 @@ div[data-testid="stForm"] div[data-baseweb="input"] {
     border-color:#E6A9BE !important;
 }
 
-div[data-testid="stForm"] div[data-baseweb="input"] button,
-div[data-testid="stForm"] div[data-testid="stTextInput"] button,
-div[data-testid="stForm"] button[aria-label*="password"],
-div[data-testid="stForm"] button[title*="password"] {
-    background:#FFFFFF !important;
-    color:#E83D7D !important;
-    -webkit-text-fill-color:#E83D7D !important;
-    border:none !important;
-    box-shadow:none !important;
-}
-
-div[data-testid="stForm"] div[data-baseweb="input"] button:hover,
-div[data-testid="stForm"] div[data-testid="stTextInput"] button:hover {
-    background:#FFF1F6 !important;
-}
-
-div[data-testid="stForm"] div[data-baseweb="input"] button svg,
-div[data-testid="stForm"] div[data-testid="stTextInput"] button svg {
-    color:#E83D7D !important;
-    fill:#E83D7D !important;
-}
 
 /* Tombol submit form: hilangkan warna coral default Streamlit */
 div[data-testid="stForm"] div[data-testid="stFormSubmitButton"] > button {
@@ -864,312 +830,6 @@ div[data-testid="stForm"] div[data-testid="stFormSubmitButton"] > button p {
 .auth-tagline {
     color:#D75B88 !important;
     -webkit-text-fill-color:#D75B88 !important;
-}
-
-
-/* ============================================================
-   FIX KHUSUS ICON MATA PASSWORD
-   Hilangkan blok hitam bawaan di sisi kanan input password
-   ============================================================ */
-div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="input"],
-div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
-    background:#FFFFFF !important;
-    border-radius:14px !important;
-    overflow:hidden !important;
-}
-
-/* Semua wrapper kecil di sisi kanan password dibuat putih */
-div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="input"] > div,
-div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] > div {
-    background:#FFFFFF !important;
-}
-
-/* Tombol show/hide password */
-div[data-testid="stForm"] div[data-testid="stTextInput"] button {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-    border-radius:0 !important;
-    min-width:42px !important;
-    width:42px !important;
-    height:100% !important;
-    padding:0 !important;
-    margin:0 !important;
-}
-
-/* Hilangkan pseudo-state gelap */
-div[data-testid="stForm"] div[data-testid="stTextInput"] button:hover,
-div[data-testid="stForm"] div[data-testid="stTextInput"] button:focus,
-div[data-testid="stForm"] div[data-testid="stTextInput"] button:active {
-    background:#FFF1F6 !important;
-    background-color:#FFF1F6 !important;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-}
-
-/* Icon mata tetap pink */
-div[data-testid="stForm"] div[data-testid="stTextInput"] button svg {
-    color:#E83D7D !important;
-    fill:none !important;
-    stroke:#E83D7D !important;
-}
-
-/* Kalau Streamlit membungkus icon dalam span/div, jangan ikut hitam */
-div[data-testid="stForm"] div[data-testid="stTextInput"] button span,
-div[data-testid="stForm"] div[data-testid="stTextInput"] button div {
-    background:transparent !important;
-}
-
-
-/* ============================================================
-   FINAL FIX PASSWORD: tombol mata tetap ada, TANPA background hitam
-   ============================================================ */
-
-/* Seluruh area input password dibuat putih */
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"],
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] > div,
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] > div > div {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-}
-
-/* Tombol mata tetap tampil dengan background putih */
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button {
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-    border-radius:0 13px 13px 0 !important;
-    min-width:42px !important;
-    width:42px !important;
-    height:100% !important;
-    padding:0 !important;
-    margin:0 !important;
-}
-
-/* Hover/focus juga jangan pernah hitam */
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button:hover,
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button:focus,
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button:active {
-    background:#FFF1F6 !important;
-    background-color:#FFF1F6 !important;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-}
-
-/* Wrapper internal tombol jangan membawa warna gelap */
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button > *,
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button span,
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button div {
-    background:transparent !important;
-    background-color:transparent !important;
-}
-
-/* Ikon mata tetap pink */
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button svg {
-    color:#E83D7D !important;
-    fill:none !important;
-    stroke:#E83D7D !important;
-}
-
-/* Kalau Streamlit memberi background gelap pada container suffix */
-div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] > div:last-child {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-    border-radius:0 13px 13px 0 !important;
-}
-
-
-/* ============================================================
-   FIX FINAL PASSWORD: paksa seluruh area suffix/eye menjadi putih
-   ============================================================ */
-
-/* Hanya field password */
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"],
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] > *,
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] > * > *,
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button,
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button > * {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-    box-shadow:none !important;
-}
-
-/* Paksa pseudo-element yang kadang membawa warna theme Streamlit */
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] *::before,
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] *::after {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-}
-
-/* Tombol mata */
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button {
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    border:none !important;
-    outline:none !important;
-    border-radius:0 13px 13px 0 !important;
-    min-width:42px !important;
-    width:42px !important;
-    padding:0 !important;
-    margin:0 !important;
-}
-
-/* Hover tetap lembut, tidak hitam */
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button:hover,
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button:focus,
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button:active {
-    background:#FFF1F6 !important;
-    background-color:#FFF1F6 !important;
-}
-
-/* Icon mata pink */
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button svg,
-div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button svg path {
-    color:#E83D7D !important;
-    stroke:#E83D7D !important;
-}
-
-/* Area input tetap putih dan rounded */
-div[data-testid="stTextInput"]:has(input[type="password"]) input {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-}
-
-
-/* ============================================================
-   FIX HANYA 3 FIELD PASSWORD AUTH
-   Tidak menyentuh komponen lain.
-   ============================================================ */
-
-/* Paksa SEMUA lapisan internal password menjadi putih */
-div[class*="st-key-login_password"] [data-baseweb="input"],
-div[class*="st-key-login_password"] [data-baseweb="input"] *,
-div[class*="st-key-register_password"] [data-baseweb="input"],
-div[class*="st-key-register_password"] [data-baseweb="input"] *,
-div[class*="st-key-register_password_confirm"] [data-baseweb="input"],
-div[class*="st-key-register_password_confirm"] [data-baseweb="input"] * {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-    box-shadow:none !important;
-}
-
-/* Hilangkan background hitam dari pseudo-element internal */
-div[class*="st-key-login_password"] [data-baseweb="input"] *::before,
-div[class*="st-key-login_password"] [data-baseweb="input"] *::after,
-div[class*="st-key-register_password"] [data-baseweb="input"] *::before,
-div[class*="st-key-register_password"] [data-baseweb="input"] *::after,
-div[class*="st-key-register_password_confirm"] [data-baseweb="input"] *::before,
-div[class*="st-key-register_password_confirm"] [data-baseweb="input"] *::after {
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-}
-
-/* Tombol mata tetap ada */
-div[class*="st-key-login_password"] button,
-div[class*="st-key-register_password"] button,
-div[class*="st-key-register_password_confirm"] button {
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    background:#FFFFFF !important;
-    background-color:#FFFFFF !important;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-}
-
-/* Hover tetap putih/pink sangat muda, tidak hitam */
-div[class*="st-key-login_password"] button:hover,
-div[class*="st-key-login_password"] button:focus,
-div[class*="st-key-login_password"] button:active,
-div[class*="st-key-register_password"] button:hover,
-div[class*="st-key-register_password"] button:focus,
-div[class*="st-key-register_password"] button:active,
-div[class*="st-key-register_password_confirm"] button:hover,
-div[class*="st-key-register_password_confirm"] button:focus,
-div[class*="st-key-register_password_confirm"] button:active {
-    background:#FFF1F6 !important;
-    background-color:#FFF1F6 !important;
-}
-
-/* Ikon mata tetap pink */
-div[class*="st-key-login_password"] button svg,
-div[class*="st-key-register_password"] button svg,
-div[class*="st-key-register_password_confirm"] button svg {
-    color:#E83D7D !important;
-    stroke:#E83D7D !important;
-}
-
-
-/* ============================================================
-   PASSWORD AUTH - KONSISTEN
-   Hanya mengubah 3 tombol mata password.
-   ============================================================ */
-
-/* Area tombol mata dibuat gelap konsisten */
-div[class*="st-key-login_password"] button,
-div[class*="st-key-register_password"] button,
-div[class*="st-key-register_password_confirm"] button {
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    background:#20212B !important;
-    background-color:#20212B !important;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-    border-radius:0 12px 12px 0 !important;
-    min-width:42px !important;
-    width:42px !important;
-    padding:0 !important;
-    margin:0 !important;
-}
-
-/* Hover/focus tetap gelap */
-div[class*="st-key-login_password"] button:hover,
-div[class*="st-key-login_password"] button:focus,
-div[class*="st-key-login_password"] button:active,
-div[class*="st-key-register_password"] button:hover,
-div[class*="st-key-register_password"] button:focus,
-div[class*="st-key-register_password"] button:active,
-div[class*="st-key-register_password_confirm"] button:hover,
-div[class*="st-key-register_password_confirm"] button:focus,
-div[class*="st-key-register_password_confirm"] button:active {
-    background:#20212B !important;
-    background-color:#20212B !important;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-}
-
-/* Ikon mata dibuat putih supaya jelas */
-div[class*="st-key-login_password"] button svg,
-div[class*="st-key-register_password"] button svg,
-div[class*="st-key-register_password_confirm"] button svg,
-div[class*="st-key-login_password"] button svg path,
-div[class*="st-key-register_password"] button svg path,
-div[class*="st-key-register_password_confirm"] button svg path {
-    color:#FFFFFF !important;
-    stroke:#FFFFFF !important;
-}
-
-/* Wrapper tombol kanan ikut warna gelap */
-div[class*="st-key-login_password"] [data-baseweb="input"] > div:last-child,
-div[class*="st-key-register_password"] [data-baseweb="input"] > div:last-child,
-div[class*="st-key-register_password_confirm"] [data-baseweb="input"] > div:last-child {
-    background:#20212B !important;
-    background-color:#20212B !important;
-    border-radius:0 12px 12px 0 !important;
 }
 
 
@@ -1239,57 +899,77 @@ div[class*="st-key-q_conviction"] input[type="radio"] {
 
 
 /* ============================================================
-   FIX HANYA AREA MATA PASSWORD AUTH
+   PASSWORD AUTH - SATU STYLE FINAL
+   Hanya 3 tombol mata: kotak gelap + ikon putih.
    ============================================================ */
 
-/* Jadikan wrapper password sebagai acuan posisi */
-div[class*="st-key-login_password"] [data-baseweb="input"],
-div[class*="st-key-register_password"] [data-baseweb="input"],
-div[class*="st-key-register_password_confirm"] [data-baseweb="input"] {
-    position:relative !important;
-    overflow:hidden !important;
-}
-
-/* Tutup area hitam di kanan dengan layer putih */
-div[class*="st-key-login_password"] [data-baseweb="input"]::after,
-div[class*="st-key-register_password"] [data-baseweb="input"]::after,
-div[class*="st-key-register_password_confirm"] [data-baseweb="input"]::after {
-    content:"" !important;
-    position:absolute !important;
-    top:1px !important;
-    right:1px !important;
-    bottom:1px !important;
-    width:42px !important;
-    background:#FFFFFF !important;
+/* Wrapper sisi kanan field password */
+div[class*="st-key-login_password"] [data-baseweb="input"] > div:last-child,
+div[class*="st-key-register_password"] [data-baseweb="input"] > div:last-child,
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"] > div:last-child {
+    background:#20212B !important;
+    background-color:#20212B !important;
     border-radius:0 12px 12px 0 !important;
-    z-index:1 !important;
-    pointer-events:none !important;
 }
 
-/* Tombol mata tetap bisa diklik dan berada di atas layer putih */
+/* Tombol mata */
 div[class*="st-key-login_password"] button,
 div[class*="st-key-register_password"] button,
 div[class*="st-key-register_password_confirm"] button {
-    position:relative !important;
-    z-index:2 !important;
-    background:transparent !important;
-    background-color:transparent !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    min-width:42px !important;
+    width:42px !important;
+    height:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+
+    background:#20212B !important;
+    background-color:#20212B !important;
     border:none !important;
     outline:none !important;
     box-shadow:none !important;
-    min-width:42px !important;
-    width:42px !important;
+    border-radius:0 12px 12px 0 !important;
+
+    color:#FFFFFF !important;
+    -webkit-text-fill-color:#FFFFFF !important;
 }
 
-/* Ikon mata tetap pink */
+/* Semua isi tombol mata dipaksa putih */
+div[class*="st-key-login_password"] button *,
+div[class*="st-key-register_password"] button *,
+div[class*="st-key-register_password_confirm"] button * {
+    color:#FFFFFF !important;
+    -webkit-text-fill-color:#FFFFFF !important;
+}
+
+/* SVG eye / eye-off */
 div[class*="st-key-login_password"] button svg,
 div[class*="st-key-register_password"] button svg,
 div[class*="st-key-register_password_confirm"] button svg,
-div[class*="st-key-login_password"] button svg path,
-div[class*="st-key-register_password"] button svg path,
-div[class*="st-key-register_password_confirm"] button svg path {
-    color:#E83D7D !important;
-    stroke:#E83D7D !important;
+div[class*="st-key-login_password"] button svg *,
+div[class*="st-key-register_password"] button svg *,
+div[class*="st-key-register_password_confirm"] button svg * {
+    color:#FFFFFF !important;
+    stroke:#FFFFFF !important;
+}
+
+/* Hover/focus tidak berubah warna */
+div[class*="st-key-login_password"] button:hover,
+div[class*="st-key-login_password"] button:focus,
+div[class*="st-key-login_password"] button:active,
+div[class*="st-key-register_password"] button:hover,
+div[class*="st-key-register_password"] button:focus,
+div[class*="st-key-register_password"] button:active,
+div[class*="st-key-register_password_confirm"] button:hover,
+div[class*="st-key-register_password_confirm"] button:focus,
+div[class*="st-key-register_password_confirm"] button:active {
+    background:#20212B !important;
+    background-color:#20212B !important;
+    color:#FFFFFF !important;
+    outline:none !important;
+    box-shadow:none !important;
 }
 
 </style>
