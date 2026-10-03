@@ -1,6 +1,11 @@
 import streamlit as st
 import base64
 from pathlib import Path
+
+try:
+    from supabase import create_client
+except ImportError:
+    create_client = None
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 from html import escape
@@ -70,19 +75,27 @@ FREE_DAILY_LIMIT = 3
 PREMIUM_PRICE = 9900
 PREMIUM_CODE = "WORTH-PREM-2026"  # kode demo prototype
 
+
+def jakarta_today():
+    return datetime.now(ZoneInfo("Asia/Jakarta")).date().isoformat()
+
+
 # ============================================================
 # SESSION STATE
 # ============================================================
 def initial_state():
     return {
-        "page": "home",
+        "page": "auth",
+        "auth_user_id": None,
+        "auth_email": "",
+        "auth_notice": "",
         "menu_open": False,
         "nav_history": [],
         "name": "Pengguna WORTH",
         "email": "",
         "is_premium": False,
         "premium_activated_at": None,
-        "usage_date": date.today().isoformat(),
+        "usage_date": jakarta_today(),
         "daily_checks": 0,
         "history": [],
         "item": "",
@@ -113,10 +126,14 @@ for key, value in initial_state().items():
 
 
 def refresh_daily_quota():
-    today = date.today().isoformat()
-    if st.session_state.usage_date != today:
+    today = jakarta_today()
+    changed = st.session_state.usage_date != today
+
+    if changed:
         st.session_state.usage_date = today
         st.session_state.daily_checks = 0
+
+    return changed
 
 
 refresh_daily_quota()
@@ -608,6 +625,39 @@ div[data-testid="stMarkdownContainer"] table th * {
     -webkit-text-fill-color: inherit !important;
 }
 
+
+/* AUTH */
+.auth-brand {
+    text-align:center;
+    color:#E83D7D;
+    font-size:28px;
+    font-weight:850;
+    letter-spacing:3px;
+    margin-top:16px;
+}
+.auth-subtitle {
+    text-align:center;
+    color:#8F7E88;
+    font-size:13px;
+    margin:6px 0 24px;
+}
+.auth-card {
+    background:#FFF;
+    border:1.5px solid #F1CCD9;
+    border-radius:20px;
+    padding:18px;
+    margin:10px 0 18px;
+    box-shadow:0 8px 24px rgba(236,63,128,.05);
+}
+div[class*="st-key-auth_mode"] div[role="radiogroup"] {
+    display:flex !important;
+    gap:10px !important;
+}
+div[class*="st-key-auth_mode"] div[role="radiogroup"] > label {
+    flex:1 !important;
+    justify-content:center !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -628,6 +678,241 @@ def chat_time(key):
     if key not in st.session_state.chat_times:
         st.session_state.chat_times[key] = current_time()
     return st.session_state.chat_times[key]
+
+
+def get_supabase_client():
+    """
+    Client Supabase dibuat PER sesi Streamlit.
+    Jangan cache secara global karena client menyimpan sesi Auth pengguna.
+    """
+    if create_client is None:
+        return None
+
+    if "supabase_client" in st.session_state:
+        return st.session_state.supabase_client
+
+    try:
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets.get(
+            "SUPABASE_PUBLISHABLE_KEY",
+            st.secrets.get("SUPABASE_KEY", ""),
+        )
+    except Exception:
+        return None
+
+    if not url or not key:
+        return None
+
+    client = create_client(url, key)
+    st.session_state.supabase_client = client
+    return client
+
+
+def normalize_email(value):
+    return str(value or "").strip().lower()
+
+
+def is_authenticated():
+    return bool(st.session_state.get("auth_user_id"))
+
+
+def set_auth_session(auth_response):
+    user = getattr(auth_response, "user", None)
+    session = getattr(auth_response, "session", None)
+
+    if user is None:
+        return False
+
+    st.session_state.auth_user_id = str(user.id)
+    st.session_state.auth_email = normalize_email(user.email)
+    st.session_state.email = normalize_email(user.email)
+
+    metadata = getattr(user, "user_metadata", None) or {}
+    if not st.session_state.get("name") or st.session_state.name == "Pengguna WORTH":
+        st.session_state.name = metadata.get("name") or "Pengguna WORTH"
+
+    return session is not None
+
+
+def current_user_payload():
+    return {
+        "user_id": st.session_state.auth_user_id,
+        "email": normalize_email(st.session_state.auth_email),
+        "name": st.session_state.get("name", "Pengguna WORTH"),
+        "is_premium": bool(st.session_state.get("is_premium", False)),
+        "premium_activated_at": st.session_state.get("premium_activated_at"),
+        "usage_date": st.session_state.get("usage_date", jakarta_today()),
+        "daily_checks": int(st.session_state.get("daily_checks", 0)),
+        "history": list(st.session_state.get("history", [])),
+        "updated_at": datetime.now(ZoneInfo("Asia/Jakarta")).isoformat(),
+    }
+
+
+def save_user_to_supabase():
+    """Simpan data aplikasi milik pengguna yang sedang login."""
+    if not is_authenticated():
+        return False
+
+    client = get_supabase_client()
+    if client is None:
+        return False
+
+    try:
+        client.table("worth_users").upsert(
+            current_user_payload(),
+            on_conflict="user_id",
+        ).execute()
+        return True
+    except Exception:
+        return False
+
+
+def fetch_current_profile():
+    """Ambil profil milik pengguna yang sedang login."""
+    if not is_authenticated():
+        return None
+
+    client = get_supabase_client()
+    if client is None:
+        return None
+
+    try:
+        response = (
+            client.table("worth_users")
+            .select("*")
+            .eq("user_id", st.session_state.auth_user_id)
+            .limit(1)
+            .execute()
+        )
+        if response.data:
+            return response.data[0]
+    except Exception:
+        return None
+
+    return None
+
+
+def apply_supabase_user(row):
+    """Muat profil + data WORTH ke session_state."""
+    st.session_state.name = row.get("name") or "Pengguna WORTH"
+    st.session_state.email = normalize_email(row.get("email", st.session_state.auth_email))
+    st.session_state.is_premium = bool(row.get("is_premium", False))
+    st.session_state.premium_activated_at = row.get("premium_activated_at")
+    st.session_state.usage_date = row.get("usage_date") or jakarta_today()
+    st.session_state.daily_checks = int(row.get("daily_checks") or 0)
+    st.session_state.history = row.get("history") or []
+
+    if refresh_daily_quota():
+        save_user_to_supabase()
+
+
+def ensure_current_profile():
+    """
+    Setelah login, muat profil jika sudah ada.
+    Kalau belum ada, buat profil baru berdasarkan Auth metadata.
+    """
+    row = fetch_current_profile()
+
+    if row:
+        apply_supabase_user(row)
+        return True
+
+    client = get_supabase_client()
+    if client is None:
+        return False
+
+    try:
+        user_resp = client.auth.get_user()
+        user = getattr(user_resp, "user", None)
+
+        if user is not None:
+            metadata = getattr(user, "user_metadata", None) or {}
+            st.session_state.name = metadata.get("name") or st.session_state.name
+            st.session_state.auth_email = normalize_email(user.email)
+            st.session_state.email = normalize_email(user.email)
+
+        return save_user_to_supabase()
+    except Exception:
+        return False
+
+
+def sign_in_user(email, password):
+    client = get_supabase_client()
+    if client is None:
+        return False, "Supabase belum terhubung."
+
+    try:
+        response = client.auth.sign_in_with_password(
+            {
+                "email": normalize_email(email),
+                "password": password,
+            }
+        )
+
+        if not set_auth_session(response):
+            return False, "Login belum berhasil."
+
+        ensure_current_profile()
+        st.session_state.page = "home"
+        return True, ""
+
+    except Exception as exc:
+        message = str(exc).lower()
+
+        if "email not confirmed" in message:
+            return False, "Email belum dikonfirmasi. Cek inbox email kamu terlebih dahulu."
+
+        return False, "Email atau password salah."
+
+
+def sign_up_user(name, email, password):
+    client = get_supabase_client()
+    if client is None:
+        return False, "Supabase belum terhubung."
+
+    try:
+        response = client.auth.sign_up(
+            {
+                "email": normalize_email(email),
+                "password": password,
+                "options": {
+                    "data": {
+                        "name": name.strip(),
+                    }
+                },
+            }
+        )
+
+        user = getattr(response, "user", None)
+        session = getattr(response, "session", None)
+
+        if user is None:
+            return False, "Pendaftaran belum berhasil."
+
+        # Jika Confirm Email dimatikan, Supabase langsung memberi session.
+        if session is not None:
+            set_auth_session(response)
+            st.session_state.name = name.strip()
+            ensure_current_profile()
+            st.session_state.page = "home"
+            return True, "Akun berhasil dibuat."
+
+        # Default Supabase: pengguna harus konfirmasi email dulu.
+        return True, (
+            "Akun berhasil dibuat. Cek email kamu untuk konfirmasi, "
+            "lalu kembali ke WORTH dan login."
+        )
+
+    except Exception as exc:
+        message = str(exc).lower()
+
+        if "already registered" in message or "already been registered" in message:
+            return False, "Email ini sudah terdaftar. Silakan login."
+
+        if "password" in message:
+            return False, "Password belum memenuhi ketentuan Supabase."
+
+        return False, "Pendaftaran belum berhasil. Coba lagi."
 
 
 def purchase_has_progress():
@@ -803,11 +1088,25 @@ def start_purchase(return_to="home"):
 
 
 def logout():
+    # Simpan perubahan terakhir sebelum sesi Auth ditutup.
+    save_user_to_supabase()
+
+    client = get_supabase_client()
+    if client is not None:
+        try:
+            client.auth.sign_out()
+        except Exception:
+            pass
+
     fresh = initial_state()
+
     for key in list(st.session_state.keys()):
         del st.session_state[key]
+
     for key, value in fresh.items():
         st.session_state[key] = value
+
+    st.session_state.page = "auth"
     st.rerun()
 
 
@@ -818,7 +1117,9 @@ def notify(message, icon="✅"):
         st.success(message)
 
 def can_start_check():
-    refresh_daily_quota()
+    if refresh_daily_quota():
+        save_user_to_supabase()
+
     return st.session_state.is_premium or st.session_state.daily_checks < FREE_DAILY_LIMIT
 
 
@@ -1022,7 +1323,10 @@ def save_completed_check():
                     )
                     updated["time"] = old_time
                     st.session_state.history[i] = updated
+                    save_user_to_supabase()
                     return
+
+            save_user_to_supabase()
             return
 
     if not st.session_state.is_premium:
@@ -1033,6 +1337,7 @@ def save_completed_check():
     st.session_state.history.append(record)
     st.session_state.current_record_id = record_id
     st.session_state.result_counted = True
+    save_user_to_supabase()
 
 
 def update_last_decision(decision):
@@ -1041,10 +1346,12 @@ def update_last_decision(decision):
         for rec in st.session_state.history:
             if rec.get("id") == record_id:
                 rec["decision"] = decision
+                save_user_to_supabase()
                 return
 
     if st.session_state.history:
         st.session_state.history[-1]["decision"] = decision
+        save_user_to_supabase()
 
 def premium_gate(feature_name):
     st.markdown(
@@ -1108,6 +1415,128 @@ def conviction_text():
 # ============================================================
 # PAGES
 # ============================================================
+# ============================================================
+# AUTH PAGE
+# ============================================================
+def auth_page():
+    st.markdown('<div class="auth-brand">WORTH</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="auth-subtitle">Purchase Decision Assistant</div>',
+        unsafe_allow_html=True,
+    )
+
+    if LOGO.exists():
+        logo_b64 = base64.b64encode(LOGO.read_bytes()).decode("utf-8")
+        logo_ext = LOGO.suffix.lower().lstrip(".")
+        logo_mime = "jpeg" if logo_ext in {"jpg", "jpeg"} else "png"
+        st.markdown(
+            f'<div style="width:100%;display:flex;justify-content:center;">'
+            f'<img src="data:image/{logo_mime};base64,{logo_b64}" '
+            f'style="width:90px;height:auto;display:block;">'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(
+        '<div class="auth-card"><b>Masuk ke WORTH</b><br>'
+        '<span class="muted">Login agar akun, Premium, kuota, dan riwayatmu tersimpan dengan aman.</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    mode = st.radio(
+        "Mode",
+        ["Login", "Daftar"],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="auth_mode",
+    )
+
+    if mode == "Login":
+        with st.form("login_form", clear_on_submit=False):
+            email = st.text_input(
+                "Email",
+                placeholder="nama@email.com",
+                key="login_email",
+            )
+            password = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Masukkan password",
+                key="login_password",
+            )
+            submitted = st.form_submit_button(
+                "MASUK →",
+                type="primary",
+                use_container_width=True,
+            )
+
+        if submitted:
+            if not email.strip():
+                st.warning("Masukkan email terlebih dahulu.")
+            elif not password:
+                st.warning("Masukkan password terlebih dahulu.")
+            else:
+                ok, message = sign_in_user(email, password)
+
+                if ok:
+                    st.rerun()
+                else:
+                    st.warning(message)
+
+    else:
+        with st.form("register_form", clear_on_submit=False):
+            name = st.text_input(
+                "Nama",
+                placeholder="Masukkan nama",
+                key="register_name",
+            )
+            email = st.text_input(
+                "Email",
+                placeholder="nama@email.com",
+                key="register_email",
+            )
+            password = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Minimal 6 karakter",
+                key="register_password",
+            )
+            password_confirm = st.text_input(
+                "Ulangi password",
+                type="password",
+                placeholder="Ulangi password",
+                key="register_password_confirm",
+            )
+            submitted = st.form_submit_button(
+                "BUAT AKUN →",
+                type="primary",
+                use_container_width=True,
+            )
+
+        if submitted:
+            clean_name = name.strip()
+            clean_email = normalize_email(email)
+
+            if not clean_name:
+                st.warning("Masukkan nama terlebih dahulu.")
+            elif not clean_email or "@" not in clean_email:
+                st.warning("Masukkan email yang valid.")
+            elif len(password) < 6:
+                st.warning("Password minimal 6 karakter.")
+            elif password != password_confirm:
+                st.warning("Password yang kamu masukkan belum sama.")
+            else:
+                ok, message = sign_up_user(clean_name, clean_email, password)
+
+                if ok and is_authenticated():
+                    st.rerun()
+                elif ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+
 def home_page():
     header()
 
@@ -1478,7 +1907,7 @@ def account_page():
         '<div class="soft-card">'
         '<b>' + escape(st.session_state.name) + '</b><br>'
         '<span class="muted">'
-        + escape(st.session_state.email or "Email belum diisi") +
+        + escape(st.session_state.auth_email or st.session_state.email) +
         '</span><br>'
         '<span class="' + css + '">'
         + status +
@@ -1496,51 +1925,53 @@ def account_page():
         unsafe_allow_html=True
     )
 
-    name_value = (
-        ""
-        if st.session_state.name == "Pengguna WORTH"
-        else st.session_state.name
-    )
+    with st.form("account_form", clear_on_submit=False):
+        name = st.text_input(
+            "Nama",
+            value=st.session_state.name,
+            placeholder="Masukkan nama",
+            key="account_name"
+        )
 
-    name = st.text_input(
-        "Nama",
-        value=name_value,
-        placeholder="Masukkan nama",
-        key="account_name"
-    )
+        st.text_input(
+            "Email",
+            value=st.session_state.auth_email,
+            disabled=True,
+            key="account_email_display"
+        )
 
-    email = st.text_input(
-        "Email",
-        value=st.session_state.email,
-        placeholder="nama@email.com",
-        key="account_email"
-    )
+        save_account = st.form_submit_button(
+            "Simpan Data Akun",
+            type="primary",
+            use_container_width=True
+        )
 
-    if st.button(
-        "Simpan Data Akun",
-        type="primary",
-        use_container_width=True
-    ):
+    if save_account:
         clean_name = name.strip()
-        clean_email = email.strip()
 
         if not clean_name:
             st.warning("Masukkan nama terlebih dahulu.")
-
-        elif not clean_email:
-            st.warning("Masukkan email terlebih dahulu.")
-
-        elif (
-            "@" not in clean_email
-            or "." not in clean_email.split("@")[-1]
-        ):
-            st.warning("Masukkan alamat email yang valid.")
-
         else:
             st.session_state.name = clean_name
-            st.session_state.email = clean_email
-            st.session_state.account_saved = True
-            st.rerun()
+
+            client = get_supabase_client()
+            try:
+                if client is not None:
+                    client.auth.update_user(
+                        {
+                            "data": {
+                                "name": clean_name,
+                            }
+                        }
+                    )
+            except Exception:
+                pass
+
+            if save_user_to_supabase():
+                st.session_state.account_saved = True
+                st.rerun()
+            else:
+                st.error("Data akun belum berhasil disimpan. Coba lagi.")
 
     if not st.session_state.is_premium:
         if st.button(
@@ -1588,8 +2019,14 @@ def premium_page():
         if code.strip() == PREMIUM_CODE:
             st.session_state.is_premium = True
             st.session_state.premium_activated_at = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
-            st.session_state.premium_just_activated = True
-            st.rerun()
+
+            if save_user_to_supabase():
+                st.session_state.premium_just_activated = True
+                st.rerun()
+            else:
+                st.session_state.is_premium = False
+                st.session_state.premium_activated_at = None
+                st.error("Status Premium belum berhasil disimpan ke Supabase. Coba lagi.")
         else:
             st.warning("Kode Premium tidak valid. Silakan periksa kembali kode yang dimasukkan.")
 
@@ -1787,11 +2224,19 @@ def about_page():
 
 def ensure_valid_page_state():
     valid_pages = {
-        "home", "limit", "purchase", "questions", "result",
+        "auth", "home", "limit", "purchase", "questions", "result",
         "account", "premium", "history", "compare", "about",
     }
 
     if st.session_state.page not in valid_pages:
+        st.session_state.page = "auth"
+        return
+
+    if not is_authenticated():
+        st.session_state.page = "auth"
+        return
+
+    if st.session_state.page == "auth":
         st.session_state.page = "home"
         return
 
@@ -1823,6 +2268,7 @@ def ensure_valid_page_state():
 # ROUTER
 # ============================================================
 pages = {
+    "auth": auth_page,
     "home": home_page,
     "limit": limit_page,
     "purchase": purchase_page,
