@@ -1237,6 +1237,61 @@ div[class*="st-key-q_conviction"] input[type="radio"] {
     accent-color:#C9366B !important;
 }
 
+
+/* ============================================================
+   FIX HANYA AREA MATA PASSWORD AUTH
+   ============================================================ */
+
+/* Jadikan wrapper password sebagai acuan posisi */
+div[class*="st-key-login_password"] [data-baseweb="input"],
+div[class*="st-key-register_password"] [data-baseweb="input"],
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"] {
+    position:relative !important;
+    overflow:hidden !important;
+}
+
+/* Tutup area hitam di kanan dengan layer putih */
+div[class*="st-key-login_password"] [data-baseweb="input"]::after,
+div[class*="st-key-register_password"] [data-baseweb="input"]::after,
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"]::after {
+    content:"" !important;
+    position:absolute !important;
+    top:1px !important;
+    right:1px !important;
+    bottom:1px !important;
+    width:42px !important;
+    background:#FFFFFF !important;
+    border-radius:0 12px 12px 0 !important;
+    z-index:1 !important;
+    pointer-events:none !important;
+}
+
+/* Tombol mata tetap bisa diklik dan berada di atas layer putih */
+div[class*="st-key-login_password"] button,
+div[class*="st-key-register_password"] button,
+div[class*="st-key-register_password_confirm"] button {
+    position:relative !important;
+    z-index:2 !important;
+    background:transparent !important;
+    background-color:transparent !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+    min-width:42px !important;
+    width:42px !important;
+}
+
+/* Ikon mata tetap pink */
+div[class*="st-key-login_password"] button svg,
+div[class*="st-key-register_password"] button svg,
+div[class*="st-key-register_password_confirm"] button svg,
+div[class*="st-key-login_password"] button svg path,
+div[class*="st-key-register_password"] button svg path,
+div[class*="st-key-register_password_confirm"] button svg path {
+    color:#E83D7D !important;
+    stroke:#E83D7D !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
