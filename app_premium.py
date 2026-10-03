@@ -987,6 +987,64 @@ div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] 
     border-radius:0 13px 13px 0 !important;
 }
 
+
+/* ============================================================
+   FIX FINAL PASSWORD: paksa seluruh area suffix/eye menjadi putih
+   ============================================================ */
+
+/* Hanya field password */
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"],
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] > *,
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] > * > *,
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button,
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button > * {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+    box-shadow:none !important;
+}
+
+/* Paksa pseudo-element yang kadang membawa warna theme Streamlit */
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] *::before,
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] *::after {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+}
+
+/* Tombol mata */
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    border:none !important;
+    outline:none !important;
+    border-radius:0 13px 13px 0 !important;
+    min-width:42px !important;
+    width:42px !important;
+    padding:0 !important;
+    margin:0 !important;
+}
+
+/* Hover tetap lembut, tidak hitam */
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button:hover,
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button:focus,
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button:active {
+    background:#FFF1F6 !important;
+    background-color:#FFF1F6 !important;
+}
+
+/* Icon mata pink */
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button svg,
+div[data-testid="stTextInput"]:has(input[type="password"]) [data-baseweb="input"] button svg path {
+    color:#E83D7D !important;
+    stroke:#E83D7D !important;
+}
+
+/* Area input tetap putih dan rounded */
+div[data-testid="stTextInput"]:has(input[type="password"]) input {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
