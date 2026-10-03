@@ -89,6 +89,7 @@ def initial_state():
         "auth_user_id": None,
         "auth_email": "",
         "auth_notice": "",
+        "auth_view": "login",
         "menu_open": False,
         "nav_history": [],
         "name": "Pengguna WORTH",
@@ -627,11 +628,6 @@ div[data-testid="stMarkdownContainer"] table th * {
 
 
 /* AUTH */
-.auth-shell {
-    max-width: 470px;
-    margin: 0 auto;
-}
-
 .auth-logo-wrap {
     width:100%;
     display:flex;
@@ -647,7 +643,7 @@ div[data-testid="stMarkdownContainer"] table th * {
     -webkit-text-fill-color:#E83D7D !important;
     font-size:25px;
     font-weight:850;
-    margin:0 0 6px;
+    margin:0 0 7px;
 }
 
 .auth-subtitle {
@@ -656,73 +652,65 @@ div[data-testid="stMarkdownContainer"] table th * {
     -webkit-text-fill-color:#7F6F78 !important;
     font-size:13px;
     line-height:1.55;
-    margin:0 auto 22px;
-    max-width:390px;
+    max-width:420px;
+    margin:0 auto 20px;
 }
 
-/* TAB LOGIN / DAFTAR */
-div[data-testid="stTabs"] {
-    background:#FFF;
-    border:1.5px solid #F1CCD9;
-    border-radius:20px;
-    padding:8px 16px 18px;
-    box-shadow:0 8px 24px rgba(236,63,128,.06);
+.auth-card-title {
+    text-align:center;
+    color:#302630 !important;
+    -webkit-text-fill-color:#302630 !important;
+    font-size:16px;
+    font-weight:800;
+    margin:12px 0 4px;
 }
 
-div[data-testid="stTabs"] [data-baseweb="tab-list"] {
-    gap:8px !important;
-    background:#FFF1F6 !important;
-    padding:5px !important;
-    border-radius:13px !important;
-    margin-bottom:14px !important;
+.auth-card-subtitle {
+    text-align:center;
+    color:#978893 !important;
+    -webkit-text-fill-color:#978893 !important;
+    font-size:12px;
+    margin-bottom:10px;
 }
 
-div[data-testid="stTabs"] [data-baseweb="tab"] {
-    flex:1 !important;
-    height:42px !important;
-    border-radius:10px !important;
-    justify-content:center !important;
-    color:#8A6E79 !important;
-    -webkit-text-fill-color:#8A6E79 !important;
-    font-weight:700 !important;
+/* Tombol switch MASUK / DAFTAR */
+div[class*="st-key-auth_login_tab"] button,
+div[class*="st-key-auth_register_tab"] button {
+    min-height:42px !important;
+    border-radius:12px !important;
+    font-size:13px !important;
+    font-weight:800 !important;
+    box-shadow:none !important;
 }
 
-div[data-testid="stTabs"] [data-baseweb="tab"] p {
-    color:inherit !important;
-    -webkit-text-fill-color:inherit !important;
-    font-weight:700 !important;
+/* Form Auth */
+div[data-testid="stForm"] {
+    background:#FFFFFF !important;
+    border:1.5px solid #F1CCD9 !important;
+    border-radius:18px !important;
+    padding:18px 18px 16px !important;
+    box-shadow:0 8px 24px rgba(236,63,128,.055) !important;
 }
 
-div[data-testid="stTabs"] [aria-selected="true"] {
-    background:#E83D7D !important;
-    color:#FFF !important;
-    -webkit-text-fill-color:#FFF !important;
-    box-shadow:0 4px 10px rgba(232,61,125,.18) !important;
-}
-
-div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
-    display:none !important;
-}
-
-div[data-testid="stTabs"] [data-baseweb="tab-border"] {
-    display:none !important;
-}
-
-/* LABEL INPUT AUTH */
-div[data-testid="stTabs"] div[data-testid="stTextInput"] label p {
+div[data-testid="stForm"] div[data-testid="stTextInput"] label p {
     color:#4A3A42 !important;
     -webkit-text-fill-color:#4A3A42 !important;
     font-size:13px !important;
     font-weight:700 !important;
 }
 
-/* ICON SHOW PASSWORD: jangan hitam */
-div[data-testid="stTabs"] div[data-testid="stTextInput"] button {
-    background:#FFF !important;
+/* Tombol mata password */
+div[data-testid="stForm"] div[data-testid="stTextInput"] button {
+    background:#FFFFFF !important;
     color:#E83D7D !important;
     -webkit-text-fill-color:#E83D7D !important;
     border:none !important;
     box-shadow:none !important;
+}
+
+div[data-testid="stForm"] div[data-testid="stTextInput"] button svg {
+    color:#E83D7D !important;
+    fill:#E83D7D !important;
 }
 
 .auth-helper {
@@ -731,7 +719,7 @@ div[data-testid="stTabs"] div[data-testid="stTextInput"] button {
     -webkit-text-fill-color:#9A8790 !important;
     font-size:11px;
     line-height:1.5;
-    margin-top:16px;
+    margin:12px 0 0;
 }
 
 .auth-tagline {
@@ -746,8 +734,8 @@ div[data-testid="stTabs"] div[data-testid="stTextInput"] button {
 
 @media(max-width:600px) {
     .auth-title {font-size:22px;}
-    .auth-subtitle {font-size:12px;margin-bottom:18px;}
-    div[data-testid="stTabs"] {padding:7px 12px 15px;}
+    .auth-subtitle {font-size:12px;margin-bottom:16px;}
+    div[data-testid="stForm"] {padding:15px 14px 14px !important;}
 }
 
 </style>
@@ -1511,8 +1499,6 @@ def conviction_text():
 # AUTH PAGE
 # ============================================================
 def auth_page():
-    st.markdown('<div class="auth-shell">', unsafe_allow_html=True)
-
     if LOGO.exists():
         logo_b64 = base64.b64encode(LOGO.read_bytes()).decode("utf-8")
         logo_ext = LOGO.suffix.lower().lstrip(".")
@@ -1520,7 +1506,7 @@ def auth_page():
         st.markdown(
             f'<div class="auth-logo-wrap">'
             f'<img src="data:image/{logo_mime};base64,{logo_b64}" '
-            f'style="width:92px;height:auto;display:block;">'
+            f'style="width:86px;height:auto;display:block;">'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -1533,9 +1519,36 @@ def auth_page():
         unsafe_allow_html=True,
     )
 
-    login_tab, register_tab = st.tabs(["Masuk", "Daftar"])
+    current_view = st.session_state.get("auth_view", "login")
 
-    with login_tab:
+    left, right = st.columns(2, gap="small")
+    with left:
+        if st.button(
+            "MASUK",
+            type="primary" if current_view == "login" else "secondary",
+            use_container_width=True,
+            key="auth_login_tab",
+        ):
+            st.session_state.auth_view = "login"
+            st.rerun()
+
+    with right:
+        if st.button(
+            "DAFTAR",
+            type="primary" if current_view == "register" else "secondary",
+            use_container_width=True,
+            key="auth_register_tab",
+        ):
+            st.session_state.auth_view = "register"
+            st.rerun()
+
+    if current_view == "login":
+        st.markdown(
+            '<div class="auth-card-title">Masuk ke akunmu</div>'
+            '<div class="auth-card-subtitle">Gunakan email dan password yang sudah terdaftar.</div>',
+            unsafe_allow_html=True,
+        )
+
         with st.form("login_form", clear_on_submit=False):
             email = st.text_input(
                 "Email",
@@ -1561,20 +1574,18 @@ def auth_page():
                 st.warning("Masukkan password terlebih dahulu.")
             else:
                 ok, message = sign_in_user(email, password)
-
                 if ok:
                     st.rerun()
                 else:
                     st.warning(message)
 
+    else:
         st.markdown(
-            '<div class="auth-helper">'
-            'Gunakan email dan password yang kamu daftarkan di WORTH.'
-            '</div>',
+            '<div class="auth-card-title">Buat akun WORTH</div>'
+            '<div class="auth-card-subtitle">Data dan riwayatmu akan tersimpan pada akun ini.</div>',
             unsafe_allow_html=True,
         )
 
-    with register_tab:
         with st.form("register_form", clear_on_submit=False):
             name = st.text_input(
                 "Nama",
@@ -1626,16 +1637,8 @@ def auth_page():
                 else:
                     st.warning(message)
 
-        st.markdown(
-            '<div class="auth-helper">'
-            'Dengan membuat akun, data WORTH kamu akan tersimpan pada akun tersebut.'
-            '</div>',
-            unsafe_allow_html=True,
-        )
-
     st.markdown(
-        '<div class="auth-tagline">THINK TWICE BEFORE YOU CHECKOUT.</div>'
-        '</div>',
+        '<div class="auth-tagline">THINK TWICE BEFORE YOU CHECKOUT.</div>',
         unsafe_allow_html=True,
     )
 
