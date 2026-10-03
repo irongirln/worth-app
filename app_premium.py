@@ -866,6 +866,63 @@ div[data-testid="stForm"] div[data-testid="stFormSubmitButton"] > button p {
     -webkit-text-fill-color:#D75B88 !important;
 }
 
+
+/* ============================================================
+   FIX KHUSUS ICON MATA PASSWORD
+   Hilangkan blok hitam bawaan di sisi kanan input password
+   ============================================================ */
+div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="input"],
+div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
+    background:#FFFFFF !important;
+    border-radius:14px !important;
+    overflow:hidden !important;
+}
+
+/* Semua wrapper kecil di sisi kanan password dibuat putih */
+div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="input"] > div,
+div[data-testid="stForm"] div[data-testid="stTextInput"] div[data-baseweb="base-input"] > div {
+    background:#FFFFFF !important;
+}
+
+/* Tombol show/hide password */
+div[data-testid="stForm"] div[data-testid="stTextInput"] button {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+    border-radius:0 !important;
+    min-width:42px !important;
+    width:42px !important;
+    height:100% !important;
+    padding:0 !important;
+    margin:0 !important;
+}
+
+/* Hilangkan pseudo-state gelap */
+div[data-testid="stForm"] div[data-testid="stTextInput"] button:hover,
+div[data-testid="stForm"] div[data-testid="stTextInput"] button:focus,
+div[data-testid="stForm"] div[data-testid="stTextInput"] button:active {
+    background:#FFF1F6 !important;
+    background-color:#FFF1F6 !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+}
+
+/* Icon mata tetap pink */
+div[data-testid="stForm"] div[data-testid="stTextInput"] button svg {
+    color:#E83D7D !important;
+    fill:none !important;
+    stroke:#E83D7D !important;
+}
+
+/* Kalau Streamlit membungkus icon dalam span/div, jangan ikut hitam */
+div[data-testid="stForm"] div[data-testid="stTextInput"] button span,
+div[data-testid="stForm"] div[data-testid="stTextInput"] button div {
+    background:transparent !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
