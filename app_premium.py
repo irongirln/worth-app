@@ -738,6 +738,134 @@ div[data-testid="stForm"] div[data-testid="stTextInput"] button svg {
     div[data-testid="stForm"] {padding:15px 14px 14px !important;}
 }
 
+
+/* ============================================================
+   AUTH - PALET WARNA SELARAS DENGAN BRAND WORTH
+   ============================================================ */
+
+/* Judul & teks */
+.auth-title {
+    color:#D92F70 !important;
+    -webkit-text-fill-color:#D92F70 !important;
+}
+
+.auth-subtitle,
+.auth-card-subtitle,
+.auth-helper {
+    color:#8F7E88 !important;
+    -webkit-text-fill-color:#8F7E88 !important;
+}
+
+.auth-card-title {
+    color:#3B2B33 !important;
+    -webkit-text-fill-color:#3B2B33 !important;
+}
+
+/* Tombol MASUK / DAFTAR */
+div[class*="st-key-auth_login_tab"] button,
+div[class*="st-key-auth_register_tab"] button {
+    border:1.5px solid #E83D7D !important;
+    border-radius:13px !important;
+    box-shadow:none !important;
+}
+
+div[class*="st-key-auth_login_tab"] button[kind="primary"],
+div[class*="st-key-auth_register_tab"] button[kind="primary"] {
+    background:#E83D7D !important;
+    color:#FFFFFF !important;
+    -webkit-text-fill-color:#FFFFFF !important;
+}
+
+div[class*="st-key-auth_login_tab"] button[kind="secondary"],
+div[class*="st-key-auth_register_tab"] button[kind="secondary"] {
+    background:#FFFFFF !important;
+    color:#E83D7D !important;
+    -webkit-text-fill-color:#E83D7D !important;
+}
+
+div[class*="st-key-auth_login_tab"] button p,
+div[class*="st-key-auth_register_tab"] button p {
+    color:inherit !important;
+    -webkit-text-fill-color:inherit !important;
+}
+
+/* Card form */
+div[data-testid="stForm"] {
+    background:#FFFFFF !important;
+    border:1.5px solid #F1CCD9 !important;
+    box-shadow:0 8px 24px rgba(232,61,125,.06) !important;
+}
+
+/* Input auth */
+div[data-testid="stForm"] div[data-testid="stTextInput"] input {
+    background:#FFFFFF !important;
+    color:#302630 !important;
+    -webkit-text-fill-color:#302630 !important;
+    border-color:#E6A9BE !important;
+}
+
+div[data-testid="stForm"] div[data-testid="stTextInput"] input:focus {
+    border-color:#E83D7D !important;
+}
+
+div[data-testid="stForm"] div[data-testid="stTextInput"] input::placeholder {
+    color:#C95A83 !important;
+    -webkit-text-fill-color:#C95A83 !important;
+}
+
+/* Wrapper input password + tombol mata */
+div[data-testid="stForm"] div[data-baseweb="input"] {
+    background:#FFFFFF !important;
+    border-color:#E6A9BE !important;
+}
+
+div[data-testid="stForm"] div[data-baseweb="input"] button,
+div[data-testid="stForm"] div[data-testid="stTextInput"] button,
+div[data-testid="stForm"] button[aria-label*="password"],
+div[data-testid="stForm"] button[title*="password"] {
+    background:#FFFFFF !important;
+    color:#E83D7D !important;
+    -webkit-text-fill-color:#E83D7D !important;
+    border:none !important;
+    box-shadow:none !important;
+}
+
+div[data-testid="stForm"] div[data-baseweb="input"] button:hover,
+div[data-testid="stForm"] div[data-testid="stTextInput"] button:hover {
+    background:#FFF1F6 !important;
+}
+
+div[data-testid="stForm"] div[data-baseweb="input"] button svg,
+div[data-testid="stForm"] div[data-testid="stTextInput"] button svg {
+    color:#E83D7D !important;
+    fill:#E83D7D !important;
+}
+
+/* Tombol submit form: hilangkan warna coral default Streamlit */
+div[data-testid="stForm"] div[data-testid="stFormSubmitButton"] > button {
+    background:#E83D7D !important;
+    border:1.5px solid #E83D7D !important;
+    color:#FFFFFF !important;
+    -webkit-text-fill-color:#FFFFFF !important;
+    box-shadow:0 6px 16px rgba(232,61,125,.16) !important;
+}
+
+div[data-testid="stForm"] div[data-testid="stFormSubmitButton"] > button:hover {
+    background:#D92F70 !important;
+    border-color:#D92F70 !important;
+}
+
+div[data-testid="stForm"] div[data-testid="stFormSubmitButton"] > button p {
+    color:#FFFFFF !important;
+    -webkit-text-fill-color:#FFFFFF !important;
+}
+
+/* Tagline */
+.auth-tagline {
+    color:#D75B88 !important;
+    -webkit-text-fill-color:#D75B88 !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
