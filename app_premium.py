@@ -923,6 +923,70 @@ div[data-testid="stForm"] div[data-testid="stTextInput"] button div {
     background:transparent !important;
 }
 
+
+/* ============================================================
+   FINAL FIX PASSWORD: tombol mata tetap ada, TANPA background hitam
+   ============================================================ */
+
+/* Seluruh area input password dibuat putih */
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"],
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] > div,
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] > div > div {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+}
+
+/* Tombol mata tetap tampil dengan background putih */
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+    border-radius:0 13px 13px 0 !important;
+    min-width:42px !important;
+    width:42px !important;
+    height:100% !important;
+    padding:0 !important;
+    margin:0 !important;
+}
+
+/* Hover/focus juga jangan pernah hitam */
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button:hover,
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button:focus,
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button:active {
+    background:#FFF1F6 !important;
+    background-color:#FFF1F6 !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+}
+
+/* Wrapper internal tombol jangan membawa warna gelap */
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button > *,
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button span,
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button div {
+    background:transparent !important;
+    background-color:transparent !important;
+}
+
+/* Ikon mata tetap pink */
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] button svg {
+    color:#E83D7D !important;
+    fill:none !important;
+    stroke:#E83D7D !important;
+}
+
+/* Kalau Streamlit memberi background gelap pada container suffix */
+div[data-testid="stForm"] div[data-testid="stTextInput"] [data-baseweb="input"] > div:last-child {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+    border-radius:0 13px 13px 0 !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
