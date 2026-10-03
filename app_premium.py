@@ -1045,6 +1045,198 @@ div[data-testid="stTextInput"]:has(input[type="password"]) input {
     background-color:#FFFFFF !important;
 }
 
+
+/* ============================================================
+   FIX HANYA 3 FIELD PASSWORD AUTH
+   Tidak menyentuh komponen lain.
+   ============================================================ */
+
+/* Paksa SEMUA lapisan internal password menjadi putih */
+div[class*="st-key-login_password"] [data-baseweb="input"],
+div[class*="st-key-login_password"] [data-baseweb="input"] *,
+div[class*="st-key-register_password"] [data-baseweb="input"],
+div[class*="st-key-register_password"] [data-baseweb="input"] *,
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"],
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"] * {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+    box-shadow:none !important;
+}
+
+/* Hilangkan background hitam dari pseudo-element internal */
+div[class*="st-key-login_password"] [data-baseweb="input"] *::before,
+div[class*="st-key-login_password"] [data-baseweb="input"] *::after,
+div[class*="st-key-register_password"] [data-baseweb="input"] *::before,
+div[class*="st-key-register_password"] [data-baseweb="input"] *::after,
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"] *::before,
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"] *::after {
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+}
+
+/* Tombol mata tetap ada */
+div[class*="st-key-login_password"] button,
+div[class*="st-key-register_password"] button,
+div[class*="st-key-register_password_confirm"] button {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    background:#FFFFFF !important;
+    background-color:#FFFFFF !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+}
+
+/* Hover tetap putih/pink sangat muda, tidak hitam */
+div[class*="st-key-login_password"] button:hover,
+div[class*="st-key-login_password"] button:focus,
+div[class*="st-key-login_password"] button:active,
+div[class*="st-key-register_password"] button:hover,
+div[class*="st-key-register_password"] button:focus,
+div[class*="st-key-register_password"] button:active,
+div[class*="st-key-register_password_confirm"] button:hover,
+div[class*="st-key-register_password_confirm"] button:focus,
+div[class*="st-key-register_password_confirm"] button:active {
+    background:#FFF1F6 !important;
+    background-color:#FFF1F6 !important;
+}
+
+/* Ikon mata tetap pink */
+div[class*="st-key-login_password"] button svg,
+div[class*="st-key-register_password"] button svg,
+div[class*="st-key-register_password_confirm"] button svg {
+    color:#E83D7D !important;
+    stroke:#E83D7D !important;
+}
+
+
+/* ============================================================
+   PASSWORD AUTH - KONSISTEN
+   Hanya mengubah 3 tombol mata password.
+   ============================================================ */
+
+/* Area tombol mata dibuat gelap konsisten */
+div[class*="st-key-login_password"] button,
+div[class*="st-key-register_password"] button,
+div[class*="st-key-register_password_confirm"] button {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    background:#20212B !important;
+    background-color:#20212B !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+    border-radius:0 12px 12px 0 !important;
+    min-width:42px !important;
+    width:42px !important;
+    padding:0 !important;
+    margin:0 !important;
+}
+
+/* Hover/focus tetap gelap */
+div[class*="st-key-login_password"] button:hover,
+div[class*="st-key-login_password"] button:focus,
+div[class*="st-key-login_password"] button:active,
+div[class*="st-key-register_password"] button:hover,
+div[class*="st-key-register_password"] button:focus,
+div[class*="st-key-register_password"] button:active,
+div[class*="st-key-register_password_confirm"] button:hover,
+div[class*="st-key-register_password_confirm"] button:focus,
+div[class*="st-key-register_password_confirm"] button:active {
+    background:#20212B !important;
+    background-color:#20212B !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+}
+
+/* Ikon mata dibuat putih supaya jelas */
+div[class*="st-key-login_password"] button svg,
+div[class*="st-key-register_password"] button svg,
+div[class*="st-key-register_password_confirm"] button svg,
+div[class*="st-key-login_password"] button svg path,
+div[class*="st-key-register_password"] button svg path,
+div[class*="st-key-register_password_confirm"] button svg path {
+    color:#FFFFFF !important;
+    stroke:#FFFFFF !important;
+}
+
+/* Wrapper tombol kanan ikut warna gelap */
+div[class*="st-key-login_password"] [data-baseweb="input"] > div:last-child,
+div[class*="st-key-register_password"] [data-baseweb="input"] > div:last-child,
+div[class*="st-key-register_password_confirm"] [data-baseweb="input"] > div:last-child {
+    background:#20212B !important;
+    background-color:#20212B !important;
+    border-radius:0 12px 12px 0 !important;
+}
+
+
+/* ============================================================
+   RESTORE TAMPILAN PILIHAN PERTANYAAN
+   Hanya untuk radio pada 5 pertanyaan WORTH.
+   ============================================================ */
+div[class*="st-key-q_usage"] div[role="radiogroup"],
+div[class*="st-key-q_similar"] div[role="radiogroup"],
+div[class*="st-key-q_reason"] div[role="radiogroup"],
+div[class*="st-key-q_budget"] div[role="radiogroup"],
+div[class*="st-key-q_conviction"] div[role="radiogroup"] {
+    gap:8px !important;
+}
+
+div[class*="st-key-q_usage"] div[role="radiogroup"] label,
+div[class*="st-key-q_similar"] div[role="radiogroup"] label,
+div[class*="st-key-q_reason"] div[role="radiogroup"] label,
+div[class*="st-key-q_budget"] div[role="radiogroup"] label,
+div[class*="st-key-q_conviction"] div[role="radiogroup"] label {
+    display:flex !important;
+    align-items:center !important;
+    width:100% !important;
+    min-height:54px !important;
+    padding:9px 14px !important;
+    margin-bottom:5px !important;
+    background:#FFFFFF !important;
+    border:1.5px solid #F0C9D7 !important;
+    border-radius:14px !important;
+    opacity:1 !important;
+}
+
+div[class*="st-key-q_usage"] div[role="radiogroup"] label:hover,
+div[class*="st-key-q_similar"] div[role="radiogroup"] label:hover,
+div[class*="st-key-q_reason"] div[role="radiogroup"] label:hover,
+div[class*="st-key-q_budget"] div[role="radiogroup"] label:hover,
+div[class*="st-key-q_conviction"] div[role="radiogroup"] label:hover {
+    background:#FFF3F7 !important;
+    border-color:#C9366B !important;
+}
+
+/* Teks jawaban harus terlihat gelap seperti tampilan awal */
+div[class*="st-key-q_usage"] div[role="radiogroup"] label p,
+div[class*="st-key-q_usage"] div[role="radiogroup"] label span,
+div[class*="st-key-q_similar"] div[role="radiogroup"] label p,
+div[class*="st-key-q_similar"] div[role="radiogroup"] label span,
+div[class*="st-key-q_reason"] div[role="radiogroup"] label p,
+div[class*="st-key-q_reason"] div[role="radiogroup"] label span,
+div[class*="st-key-q_budget"] div[role="radiogroup"] label p,
+div[class*="st-key-q_budget"] div[role="radiogroup"] label span,
+div[class*="st-key-q_conviction"] div[role="radiogroup"] label p,
+div[class*="st-key-q_conviction"] div[role="radiogroup"] label span {
+    color:#3A2831 !important;
+    -webkit-text-fill-color:#3A2831 !important;
+    opacity:1 !important;
+    font-weight:500 !important;
+}
+
+/* Radio kembali pink */
+div[class*="st-key-q_usage"] input[type="radio"],
+div[class*="st-key-q_similar"] input[type="radio"],
+div[class*="st-key-q_reason"] input[type="radio"],
+div[class*="st-key-q_budget"] input[type="radio"],
+div[class*="st-key-q_conviction"] input[type="radio"] {
+    accent-color:#C9366B !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
