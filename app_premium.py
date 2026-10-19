@@ -2348,7 +2348,42 @@ def premium_page():
         unsafe_allow_html=True,
     )
 
-    code = st.text_input("Masukkan Kode Premium", placeholder="Masukkan kode aktivasi", type="password")
+    # Bagian pembayaran Premium saja; bagian aplikasi lainnya tetap.
+    with st.expander("💗 Beli Premium melalui QRIS", expanded=True):
+        st.markdown(
+            '<div class="soft-card" style="margin-top:4px;">'
+            '<b>Langkah pembayaran</b><br>'
+            '1. Bayar <b>Rp9.900</b> untuk akses Premium selama 1 bulan.<br>'
+            '2. Scan QRIS di bawah menggunakan aplikasi pembayaran yang mendukung QRIS.<br>'
+            '3. Setelah membayar, tekan tombol WhatsApp untuk mengirim konfirmasi pembayaran.<br>'
+            '4. Admin akan memeriksa transaksi yang masuk. Setelah terverifikasi, kode aktivasi dikirim melalui WhatsApp.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        qris_path = BASE_DIR / "worth_qris.jpeg"
+        if qris_path.exists():
+            st.image(str(qris_path), caption="QRIS pembayaran", use_container_width=True)
+        else:
+            st.warning(
+                "File worth_qris.jpeg belum ditemukan. Simpan gambar QRIS yang diberikan "
+                "bersama file app.py dengan nama worth_qris.jpeg."
+            )
+
+        st.markdown(
+            "**Setelah membayar, konfirmasi ke admin WORTH?**  \n"
+            "Nominal: **Rp9.900**"
+        )
+        wa_message = "Halo Admin WORTH?, saya sudah membayar Premium Rp9.900. Berikut saya kirimkan bukti pembayaran untuk diverifikasi."
+        wa_url = "https://wa.me/6281249668160?text=" + __import__("urllib.parse", fromlist=["quote"]).quote(wa_message)
+        st.link_button("💬 KONFIRMASI PEMBAYARAN VIA WHATSAPP", wa_url, use_container_width=True)
+
+    st.markdown("**Sudah punya kode aktivasi?**")
+    code = st.text_input(
+        "Masukkan Kode Premium",
+        placeholder="Masukkan kode aktivasi",
+        type="password",
+    )
 
     if st.button(
         "👑 AKTIFKAN PREMIUM",
@@ -2370,7 +2405,7 @@ def premium_page():
         else:
             st.warning("Kode Premium tidak valid. Silakan periksa kembali kode yang dimasukkan.")
 
-    st.caption("Aktivasi kode digunakan sebagai simulasi prototype/MVP. Tidak ada payment gateway pada versi ini.")
+    st.caption("Pembayaran dan verifikasi masih dilakukan secara manual pada tahap MVP.")
 
 
 def history_page():
