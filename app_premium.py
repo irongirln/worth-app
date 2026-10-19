@@ -2006,4 +2006,660 @@ def questions_page():
 
     if q == 1:
         safe_item = escape(st.session_state.item)
-        bot_message(f"Seberapa sering kamu akan menggunakan <b>{safe_item}</b> ini?"
+        bot_message(f"Seberapa sering kamu akan menggunakan <b>{safe_item}</b> ini?", "q1_bot")
+        answer = st.radio("Penggunaan", list(USAGE.keys()), index=None, label_visibility="collapsed", key="q_usage")
+        back, nextc = st.columns(2)
+        with back:
+            if st.button("← Kembali", use_container_width=True, key="q1_back"):
+                go_back()
+        with nextc:
+            if st.button(
+                "Lanjut →",
+                type="primary",
+                use_container_width=True,
+                key="q1_next",
+                disabled=answer is None,
+            ):
+                st.session_state.usage = answer
+                st.session_state.question = 2
+                st.rerun()
+
+    elif q == 2:
+        bot_message("Apakah kamu sudah memiliki <b>barang yang serupa?</b>", "q2_bot")
+        answer = st.radio("Barang serupa", list(SIMILAR.keys()), index=None, label_visibility="collapsed", key="q_similar")
+        back, nextc = st.columns(2)
+        with back:
+            if st.button("← Kembali", use_container_width=True, key="q2_back"):
+                st.session_state.question = 1
+                st.rerun()
+        with nextc:
+            if st.button(
+                "Lanjut →",
+                type="primary",
+                use_container_width=True,
+                key="q2_next",
+                disabled=answer is None,
+            ):
+                st.session_state.similar = answer
+                st.session_state.question = 3
+                st.rerun()
+
+    elif q == 3:
+        bot_message("Kenapa kamu ingin <b>membeli barang ini?</b>", "q3_bot")
+        answer = st.radio("Alasan pembelian", list(REASON.keys()), index=None, label_visibility="collapsed", key="q_reason")
+        back, nextc = st.columns(2)
+        with back:
+            if st.button("← Kembali", use_container_width=True, key="q3_back"):
+                st.session_state.question = 2
+                st.rerun()
+        with nextc:
+            if st.button(
+                "Lanjut →",
+                type="primary",
+                use_container_width=True,
+                key="q3_next",
+                disabled=answer is None,
+            ):
+                st.session_state.reason = answer
+                st.session_state.question = 4
+                st.rerun()
+
+    elif q == 4:
+        bot_message("Bagaimana pembelian ini akan <b>memengaruhi budgetmu?</b>", "q4_bot")
+        answer = st.radio("Dampak budget", list(BUDGET.keys()), index=None, label_visibility="collapsed", key="q_budget")
+        back, nextc = st.columns(2)
+        with back:
+            if st.button("← Kembali", use_container_width=True, key="q4_back"):
+                st.session_state.question = 3
+                st.rerun()
+        with nextc:
+            if st.button(
+                "Lanjut →",
+                type="primary",
+                use_container_width=True,
+                key="q4_next",
+                disabled=answer is None,
+            ):
+                st.session_state.budget = answer
+                st.session_state.question = 5
+                st.rerun()
+
+    elif q == 5:
+        bot_message(
+            "Kalau tidak ada <b>diskon, promo, atau sedang tren</b>, "
+            "apakah kamu tetap ingin membeli barang ini?",
+            "q5_bot",
+        )
+        answer = st.radio(
+            "Keinginan tanpa pemicu",
+            list(CONVICTION.keys()),
+            index=None,
+            label_visibility="collapsed",
+            key="q_conviction",
+        )
+        back, nextc = st.columns(2)
+        with back:
+            if st.button("← Kembali", use_container_width=True, key="q5_back"):
+                st.session_state.question = 4
+                st.rerun()
+        with nextc:
+            if st.button(
+                "Lihat Hasil →",
+                type="primary",
+                use_container_width=True,
+                key="q5_result",
+                disabled=answer is None,
+            ):
+                st.session_state.conviction = answer
+                calculate()
+                go("result")
+
+def result_page():
+    save_completed_check()
+    header("Hasil WORTH")
+
+    bot_message(
+        "Aku sudah melihat semua jawabanmu.<br><br>Ini hasil pertimbangan untuk pembelianmu 💗",
+        "result_bot",
+    )
+
+    score = st.session_state.score
+    risk = st.session_state.risk
+    angle = score * 3.6
+
+    result_html = (
+        '<div class="result-title">HASIL WORTH</div>'
+        '<div class="result-body">'
+        f'<div class="score-circle" style="--score-angle:{angle}deg">'
+        '<div class="score-text">'
+        f'<div class="score-big">{score}</div>'
+        '<div class="score-small">/100</div>'
+        '<div class="score-label">WORTH Score</div>'
+        '</div></div>'
+        f'<div class="risk-badge">{risk}</div>'
+        '</div>'
+    )
+    st.markdown(result_html, unsafe_allow_html=True)
+
+    info_html = (
+        '<div class="info-card"><div class="card-title">Informasi Barang</div>'
+        '<div class="item-info"><div class="item-symbol">🏷️</div><div>'
+        '<div class="info-label">Nama Barang</div>'
+        f'<div class="info-value">{escape(st.session_state.item)}</div>'
+        '<div class="info-label">Harga</div>'
+        f'<div class="info-value">{rupiah(st.session_state.price)}</div>'
+        '</div></div></div>'
+    )
+    st.markdown(info_html, unsafe_allow_html=True)
+
+    why_html = (
+        '<div class="worth-why-box">'
+        '<div class="worth-why-title">💡 KENAPA?</div>'
+        '<div class="worth-why-content">'
+        'Berdasarkan jawabanmu, skor ini dipengaruhi oleh:<br><br>'
+        '• ' + usage_text() + '<br>'
+        '• ' + similar_text() + '<br>'
+        '• ' + reason_text() + '<br>'
+        '• ' + budget_text() + '<br>'
+        '• ' + conviction_text() +
+        '</div></div>'
+    )
+    st.markdown(why_html, unsafe_allow_html=True)
+
+    decision_locked = st.session_state.decision is not None
+
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button(
+            "⊘ AKU BATAL BELI",
+            use_container_width=True,
+            disabled=decision_locked,
+            key="decision_skip",
+        ):
+            st.session_state.decision = "skip"
+            update_last_decision("Batal membeli")
+            st.rerun()
+    with c2:
+        if st.button(
+            "🛒 TETAP BELI",
+            type="primary",
+            use_container_width=True,
+            disabled=decision_locked,
+            key="decision_buy",
+        ):
+            st.session_state.decision = "buy"
+            update_last_decision("Tetap membeli")
+            st.rerun()
+
+    if st.session_state.decision:
+        msg = (
+            "Kamu memilih untuk melewatkan pembelian ini."
+            if st.session_state.decision == "skip"
+            else "Kamu memilih untuk tetap melanjutkan pembelian."
+        )
+        final_html = (
+            '<div class="final-message">💗 <b>' + msg + '</b><br><br>'
+            'Apa pun keputusanmu, yang penting kamu sudah mempertimbangkannya terlebih dahulu.'
+            '</div>'
+        )
+        st.markdown(final_html, unsafe_allow_html=True)
+
+        if st.button("↻ CEK PEMBELIAN LAIN", use_container_width=True):
+            if can_start_check():
+                start_purchase("home")
+            else:
+                go("limit")
+
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+    if st.button(
+        "🏠 KEMBALI KE HOME",
+        use_container_width=True,
+        key="result_home"
+    ):
+        reset_purchase("home")
+        st.rerun()
+
+
+def account_page():
+    header("Akun Saya")
+
+    if st.session_state.get("account_saved", False):
+        st.markdown(
+            '<div class="account-success">✅&nbsp;&nbsp; Data akun berhasil diperbarui.</div>',
+            unsafe_allow_html=True,
+        )
+        st.session_state.account_saved = False
+
+    status = (
+        "👑 WORTH PREMIUM"
+        if st.session_state.is_premium
+        else "WORTH FREE"
+    )
+
+    css = (
+        "status-premium"
+        if st.session_state.is_premium
+        else "status-free"
+    )
+
+    st.markdown(
+        '<div class="soft-card">'
+        '<b>' + escape(st.session_state.name) + '</b><br>'
+        '<span class="muted">'
+        + escape(st.session_state.auth_email or st.session_state.email) +
+        '</span><br>'
+        '<span class="' + css + '">'
+        + status +
+        '</span><br><br>'
+        '<b>Penggunaan</b><br>'
+        + quota_text() +
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="section-title account-data-title">'
+        'Data akun'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    with st.form("account_form", clear_on_submit=False):
+        name = st.text_input(
+            "Nama",
+            value=st.session_state.name,
+            placeholder="Masukkan nama",
+            key="account_name"
+        )
+
+        st.text_input(
+            "Email",
+            value=st.session_state.auth_email,
+            disabled=True,
+            key="account_email_display"
+        )
+
+        save_account = st.form_submit_button(
+            "Simpan Data Akun",
+            type="primary",
+            use_container_width=True
+        )
+
+    if save_account:
+        clean_name = name.strip()
+
+        if not clean_name:
+            st.warning("Masukkan nama terlebih dahulu.")
+        else:
+            st.session_state.name = clean_name
+
+            client = get_supabase_client()
+            try:
+                if client is not None:
+                    client.auth.update_user(
+                        {
+                            "data": {
+                                "name": clean_name,
+                            }
+                        }
+                    )
+            except Exception:
+                pass
+
+            if save_user_to_supabase():
+                st.session_state.account_saved = True
+                st.rerun()
+            else:
+                st.error("Data akun belum berhasil disimpan. Coba lagi.")
+
+    if not st.session_state.is_premium:
+        if st.button(
+            "👑 AKTIFKAN WORTH PREMIUM",
+            use_container_width=True
+        ):
+            go("premium")
+
+
+def premium_page():
+    header("WORTH Premium")
+
+    if st.session_state.get("premium_just_activated", False):
+        st.markdown(
+            '<div class="account-success">👑&nbsp;&nbsp; WORTH Premium berhasil diaktifkan!</div>',
+            unsafe_allow_html=True,
+        )
+        st.session_state.premium_just_activated = False
+
+    if st.session_state.is_premium:
+        st.markdown(
+            '<div class="premium-card"><b>Premium sudah aktif! 👑</b><br><br>'
+            'Akunmu memiliki akses pengecekan tanpa batas, Riwayat Pengecekan, dan Perbandingan Produk.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    st.markdown(
+        '<div class="premium-card"><div style="font-size:24px;font-weight:800;color:#D81B60">'
+        'Rp9.900 <span style="font-size:13px;color:#8F7E88">/ bulan</span></div><br>'
+        'Upgrade ke Premium untuk mendapatkan akses fitur tambahan.<br><br>'
+        '✓ Pengecekan tanpa batas<br>✓ Riwayat pengecekan<br>✓ Perbandingan 2 produk</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Bagian pembayaran Premium saja; bagian aplikasi lainnya tetap.
+    with st.expander("💗 Beli Premium melalui QRIS", expanded=True):
+        st.markdown(
+            '<div class="soft-card" style="margin-top:4px;">'
+            '<b>Langkah pembayaran</b><br>'
+            '1. Bayar <b>Rp9.900</b> untuk akses Premium selama 1 bulan.<br>'
+            '2. Scan QRIS di bawah menggunakan aplikasi pembayaran yang mendukung QRIS.<br>'
+            '3. Setelah membayar, tekan tombol WhatsApp untuk mengirim konfirmasi pembayaran.<br>'
+            '4. Admin akan memeriksa transaksi yang masuk. Setelah terverifikasi, kode aktivasi dikirim melalui WhatsApp.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        qris_path = BASE_DIR / "worth_qris.jpeg"
+        if qris_path.exists():
+            st.image(str(qris_path), caption="QRIS pembayaran", use_container_width=True)
+        else:
+            st.warning(
+                "File worth_qris.jpeg belum ditemukan. Simpan gambar QRIS yang diberikan "
+                "bersama file app.py dengan nama worth_qris.jpeg."
+            )
+
+        st.markdown(
+            "**Setelah membayar, konfirmasi ke admin WORTH?**  \n"
+            "Nominal: **Rp9.900**"
+        )
+        wa_message = "Halo Admin WORTH?, saya sudah membayar Premium Rp9.900. Berikut saya kirimkan bukti pembayaran untuk diverifikasi."
+        wa_url = "https://wa.me/6281249668160?text=" + __import__("urllib.parse", fromlist=["quote"]).quote(wa_message)
+        st.link_button(
+            "💬 KONFIRMASI PEMBAYARAN VIA WHATSAPP",
+            wa_url,
+            use_container_width=True,
+            type="primary",
+        )
+
+    st.markdown("**Sudah punya kode aktivasi?**")
+    code = st.text_input(
+        "Masukkan Kode Premium",
+        placeholder="Masukkan kode aktivasi",
+        type="password",
+    )
+
+    if st.button(
+        "👑 AKTIFKAN PREMIUM",
+        type="primary",
+        use_container_width=True,
+        disabled=not code.strip(),
+    ):
+        if code.strip() == PREMIUM_CODE:
+            st.session_state.is_premium = True
+            st.session_state.premium_activated_at = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
+
+            if save_user_to_supabase():
+                st.session_state.premium_just_activated = True
+                st.rerun()
+            else:
+                st.session_state.is_premium = False
+                st.session_state.premium_activated_at = None
+                st.error("Status Premium belum berhasil disimpan ke Supabase. Coba lagi.")
+        else:
+            st.warning("Kode Premium tidak valid. Silakan periksa kembali kode yang dimasukkan.")
+
+    st.caption("Pembayaran dan verifikasi masih dilakukan secara manual pada tahap MVP.")
+
+
+def history_page():
+    header("Riwayat Pengecekan")
+
+    if not st.session_state.is_premium:
+        premium_gate("Riwayat Pengecekan")
+        return
+
+    if not st.session_state.history:
+        st.markdown(
+            '<div class="empty-state"><div class="empty-icon">🕘</div>'
+            '<div class="empty-title">Belum ada pengecekan</div>'
+            'Hasil pengecekan pembelianmu akan muncul di sini.</div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("🛍️ MULAI PENGECEKAN", type="primary", use_container_width=True):
+            start_purchase("history")
+        return
+
+    for rec in reversed(st.session_state.history):
+        decision = rec.get("decision") or "Belum dipilih"
+        safe_item = escape(str(rec.get("item", "")))
+        html = (
+            '<div class="history-row">'
+            f'<b>{safe_item}</b><br><span class="muted">{rec.get("time", "-")}</span><br><br>'
+            f'Harga: <b>{rupiah(rec.get("price", 0))}</b><br>'
+            f'WORTH Score: <b>{rec.get("score", "-")}/100</b><br>'
+            f'Tingkat Risiko: <b>{rec.get("risk", "-")}</b><br>'
+            f'Keputusan: <b>{escape(str(decision))}</b></div>'
+        )
+        st.markdown(html, unsafe_allow_html=True)
+
+        with st.expander("Lihat detail", expanded=False):
+            st.markdown(
+                f"**Penggunaan:** {rec.get('usage', '-')}  \n"
+                f"**Barang serupa:** {rec.get('similar', '-')}  \n"
+                f"**Alasan pembelian:** {rec.get('reason', '-')}  \n"
+                f"**Dampak budget:** {rec.get('budget', '-')}  \n"
+                f"**Tanpa diskon/promo/tren:** {rec.get('conviction', '-')}"
+            )
+
+def safe_markdown_cell(value):
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def compare_page():
+    header("Perbandingan Produk")
+
+    if not st.session_state.is_premium:
+        premium_gate("Perbandingan Produk")
+        return
+
+    if len(st.session_state.history) < 2:
+        st.markdown(
+            '<div class="empty-state"><div class="empty-icon">⚖️</div>'
+            '<div class="empty-title">Belum cukup data</div>'
+            'Lakukan minimal 2 pengecekan untuk membandingkan produk.</div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("🛍️ MULAI PENGECEKAN", type="primary", use_container_width=True):
+            start_purchase("compare")
+        return
+
+    options = list(range(len(st.session_state.history)))
+
+    def label(i):
+        r = st.session_state.history[i]
+        return f'{r["item"]} — {r["score"]}/100 ({r["risk"]})'
+
+    a = st.selectbox("Produk pertama", options, format_func=label, key="cmp_a")
+    b = st.selectbox(
+        "Produk kedua",
+        options,
+        index=1 if len(options) > 1 else 0,
+        format_func=label,
+        key="cmp_b",
+    )
+
+    if a == b:
+        st.warning("Pilih dua produk yang berbeda.")
+        return
+
+    A = st.session_state.history[a]
+    B = st.session_state.history[b]
+
+    # Tentukan rekomendasi lebih dulu agar hasil langsung terlihat
+    if A["score"] < B["score"]:
+        recommended = A
+        other = B
+    elif B["score"] < A["score"]:
+        recommended = B
+        other = A
+    else:
+        recommended = None
+        other = None
+
+    st.markdown(
+        '<div class="soft-card"><div class="compare-head">Hasil Perbandingan</div>'
+        'WORTH membandingkan kedua produk berdasarkan jawabanmu dan memberikan rekomendasi '
+        'berdasarkan WORTH Score serta tingkat risiko pembelian.</div>',
+        unsafe_allow_html=True,
+    )
+
+    # HASIL UTAMA langsung tampil di bawah judul
+    if recommended is not None:
+        score_gap = abs(A["score"] - B["score"])
+        recommendation_html = (
+            '<div class="soft-card" style="border:2px solid #E83D7D;background:#FFF0F6;'
+            'text-align:center;padding:22px 18px;">'
+            '<div style="font-size:14px;color:#8F7E88;font-weight:700;margin-bottom:7px;">'
+            '💗 REKOMENDASI WORTH</div>'
+            f'<div style="font-size:24px;color:#D81B60;font-weight:800;margin-bottom:10px;">'
+            f'{escape(str(recommended["item"]))}</div>'
+            f'<div style="font-size:15px;color:#302630;line-height:1.65;">'
+            f'WORTH Score <b>{recommended["score"]}/100</b> · '
+            f'<b>{escape(str(recommended["risk"]))}</b><br>'
+            f'Lebih rendah {score_gap} poin dibanding '
+            f'<b>{escape(str(other["item"]))}</b> ({other["score"]}/100).<br><br>'
+            'Berdasarkan jawabanmu, produk ini memiliki tingkat risiko pembelian yang lebih rendah.'
+            '</div></div>'
+        )
+        st.markdown(recommendation_html, unsafe_allow_html=True)
+    else:
+        tie_html = (
+            '<div class="soft-card" style="border:2px solid #E83D7D;background:#FFF0F6;'
+            'text-align:center;padding:22px 18px;">'
+            '<div style="font-size:14px;color:#8F7E88;font-weight:700;margin-bottom:7px;">'
+            '⚖️ HASIL WORTH</div>'
+            '<div style="font-size:22px;color:#D81B60;font-weight:800;margin-bottom:10px;">'
+            'Keduanya Seimbang</div>'
+            f'<div style="font-size:15px;color:#302630;line-height:1.65;">'
+            f'<b>{escape(str(A["item"]))}</b> dan <b>{escape(str(B["item"]))}</b> '
+            f'memiliki WORTH Score yang sama, yaitu <b>{A["score"]}/100</b>.<br><br>'
+            'Pertimbangkan harga, kebutuhan utama, dan produk yang akan lebih sering digunakan.'
+            '</div></div>'
+        )
+        st.markdown(tie_html, unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="section-title" style="margin-top:24px;">Detail Perbandingan</div>',
+        unsafe_allow_html=True,
+    )
+
+    rows = [
+        ("Harga", rupiah(A["price"]), rupiah(B["price"])),
+        ("Skor Penggunaan", A["usage_score"], B["usage_score"]),
+        ("Skor Barang Serupa", A["similar_score"], B["similar_score"]),
+        ("Skor Alasan Pembelian", A["reason_score"], B["reason_score"]),
+        ("Skor Budget", A["budget_score"], B["budget_score"]),
+        ("Skor Keinginan Tanpa Pemicu", A.get("conviction_score", "-"), B.get("conviction_score", "-")),
+        ("WORTH Score", f'{A["score"]}/100', f'{B["score"]}/100'),
+        ("Tingkat Risiko", A["risk"], B["risk"]),
+    ]
+
+    md = (
+        f'| Komponen | {safe_markdown_cell(A["item"])} | {safe_markdown_cell(B["item"])} |\n'
+        '|---|---:|---:|\n'
+        + "\n".join(f"| {x} | {y} | {z} |" for x, y, z in rows)
+    )
+    st.markdown(md)
+
+
+def about_page():
+    header("Tentang WORTH")
+
+    about_html = (
+        '<div class="soft-card"><b>WORTH — Purchase Decision Assistant</b><br><br>'
+        'WORTH membantu pengguna mempertimbangkan kembali keputusan pembelian sebelum melakukan <i>checkout</i>. '
+        'Penilaian dilakukan berdasarkan kebutuhan dan kondisi pembelian pengguna.<br><br>'
+        '<b>Apa yang dipertimbangkan WORTH?</b><br><br>'
+        '• Seberapa sering barang akan digunakan<br>'
+        '• Kepemilikan barang yang serupa<br>'
+        '• Alasan melakukan pembelian<br>'
+        '• Dampak pembelian terhadap budget<br>'
+        '• Keinginan membeli tanpa diskon, promo, atau tren<br><br>'
+        '<b>Hasil Pengecekan</b><br><br>'
+        'Setelah menjawab pertanyaan, WORTH menampilkan <b>WORTH Score</b> dan <b>Tingkat Risiko</b> '
+        'sebagai bahan pertimbangan sebelum membeli.<br><br>'
+        '0–30 &nbsp; = &nbsp; Risiko Rendah<br>'
+        '31–60 &nbsp; = &nbsp; Risiko Sedang<br>'
+        '61–100 &nbsp; = &nbsp; Risiko Tinggi<br><br>'
+        '<b>WORTH Premium</b><br><br>'
+        'Premium memberikan akses ke pengecekan tanpa batas, riwayat pengecekan, dan perbandingan produk. '
+        'Status Premium tidak memengaruhi hasil WORTH Score maupun Tingkat Risiko.<br><br>'
+        '<div style="background:#FFF1F6;border-radius:12px;padding:13px 15px;color:#6F5964;">'
+        '💗 WORTH merupakan alat bantu pertimbangan sebelum membeli. Keputusan akhir tetap berada di tangan pengguna.'
+        '</div></div>'
+    )
+    st.markdown(about_html, unsafe_allow_html=True)
+
+def ensure_valid_page_state():
+    valid_pages = {
+        "auth", "home", "limit", "purchase", "questions", "result",
+        "account", "premium", "history", "compare", "about",
+    }
+
+    if st.session_state.page not in valid_pages:
+        st.session_state.page = "auth"
+        return
+
+    if not is_authenticated():
+        st.session_state.page = "auth"
+        return
+
+    if st.session_state.page == "auth":
+        st.session_state.page = "home"
+        return
+
+    if st.session_state.page == "questions":
+        if not st.session_state.item:
+            st.session_state.page = "purchase"
+            return
+        if st.session_state.price <= 0:
+            st.session_state.page = "purchase"
+            return
+        if st.session_state.question not in {1, 2, 3, 4, 5}:
+            st.session_state.question = 1
+
+    if st.session_state.page == "result":
+        required = [
+            st.session_state.item,
+            st.session_state.price,
+            st.session_state.usage,
+            st.session_state.similar,
+            st.session_state.reason,
+            st.session_state.budget,
+            st.session_state.conviction,
+        ]
+        if not all(required) or st.session_state.score <= 0:
+            reset_purchase("home")
+
+
+# ============================================================
+# ROUTER
+# ============================================================
+pages = {
+    "auth": auth_page,
+    "home": home_page,
+    "limit": limit_page,
+    "purchase": purchase_page,
+    "questions": questions_page,
+    "result": result_page,
+    "account": account_page,
+    "premium": premium_page,
+    "history": history_page,
+    "compare": compare_page,
+    "about": about_page,
+}
+
+ensure_valid_page_state()
+pages.get(st.session_state.page, home_page)()
