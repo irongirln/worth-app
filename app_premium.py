@@ -2376,7 +2376,12 @@ def premium_page():
         )
         wa_message = "Halo Admin WORTH?, saya sudah membayar Premium Rp9.900. Berikut saya kirimkan bukti pembayaran untuk diverifikasi."
         wa_url = "https://wa.me/6281249668160?text=" + __import__("urllib.parse", fromlist=["quote"]).quote(wa_message)
-        st.link_button("💬 KONFIRMASI PEMBAYARAN VIA WHATSAPP", wa_url, use_container_width=True)
+        st.link_button(
+            "💬 KONFIRMASI PEMBAYARAN VIA WHATSAPP",
+            wa_url,
+            use_container_width=True,
+            type="primary",
+        )
 
     st.markdown("**Sudah punya kode aktivasi?**")
     code = st.text_input(
