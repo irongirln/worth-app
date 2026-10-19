@@ -73,7 +73,6 @@ CONVICTION = {
 
 FREE_DAILY_LIMIT = 3
 PREMIUM_PRICE = 9900
-PREMIUM_CODE = "WORTH-PREM-2026"  # kode demo prototype
 
 
 def jakarta_today():
@@ -114,6 +113,9 @@ def initial_state():
         "current_record_id": None,
         "account_saved": False,
         "premium_just_activated": False,
+        "premium_expires_at": None,
+        "pending_order_id": None,
+        "pending_order_created_at": None,
         "logout_confirm": False,
         "leave_confirm": False,
         "pending_page": None,
@@ -1049,12 +1051,10 @@ def set_auth_session(auth_response):
 
 
 def current_user_payload():
+    """Data aplikasi yang boleh diperbarui pengguna; status Premium hanya dari server."""
     return {
-        "user_id": st.session_state.auth_user_id,
         "email": normalize_email(st.session_state.auth_email),
         "name": st.session_state.get("name", "Pengguna WORTH"),
-        "is_premium": bool(st.session_state.get("is_premium", False)),
-        "premium_activated_at": st.session_state.get("premium_activated_at"),
         "usage_date": st.session_state.get("usage_date", jakarta_today()),
         "daily_checks": int(st.session_state.get("daily_checks", 0)),
         "history": list(st.session_state.get("history", [])),
@@ -1063,7 +1063,7 @@ def current_user_payload():
 
 
 def save_user_to_supabase():
-    """Simpan data aplikasi milik pengguna yang sedang login."""
+    """Simpan kolom profil yang boleh diedit tanpa menulis kolom Premium."""
     if not is_authenticated():
         return False
 
@@ -1072,14 +1072,30 @@ def save_user_to_supabase():
         return False
 
     try:
-        client.table("worth_users").upsert(
-            current_user_payload(),
-            on_conflict="user_id",
-        ).execute()
+        payload = current_user_payload()
+        response = (
+            client.table("worth_users")
+            .update(payload)
+            .eq("user_id", st.session_state.auth_user_id)
+            .select("user_id")
+            .execute()
+        )
+        if response.data:
+            return True
+
+        # Jika profil belum ada, buat sebagai Free. Kolom Premium tidak dapat
+        # diaktifkan melalui jalur penyimpanan profil biasa.
+        new_profile = {
+            "user_id": st.session_state.auth_user_id,
+            **payload,
+            "is_premium": False,
+            "premium_activated_at": None,
+            "premium_expires_at": None,
+        }
+        client.table("worth_users").insert(new_profile).execute()
         return True
     except Exception:
         return False
-
 
 def fetch_current_profile():
     """Ambil profil milik pengguna yang sedang login."""
@@ -1107,18 +1123,31 @@ def fetch_current_profile():
 
 
 def apply_supabase_user(row):
-    """Muat profil + data WORTH ke session_state."""
+    """Muat profil. Akses Premium valid hanya jika masa aktif dari DB belum habis."""
     st.session_state.name = row.get("name") or "Pengguna WORTH"
     st.session_state.email = normalize_email(row.get("email", st.session_state.auth_email))
-    st.session_state.is_premium = bool(row.get("is_premium", False))
     st.session_state.premium_activated_at = row.get("premium_activated_at")
+    st.session_state.premium_expires_at = row.get("premium_expires_at")
+
+    expires_raw = row.get("premium_expires_at")
+    premium_from_db = bool(row.get("is_premium", False))
+    premium_valid = False
+    if premium_from_db and expires_raw:
+        try:
+            expires_dt = datetime.fromisoformat(str(expires_raw).replace("Z", "+00:00"))
+            if expires_dt.tzinfo is None:
+                expires_dt = expires_dt.replace(tzinfo=ZoneInfo("Asia/Jakarta"))
+            premium_valid = expires_dt > datetime.now(ZoneInfo("Asia/Jakarta"))
+        except (TypeError, ValueError):
+            premium_valid = False
+    st.session_state.is_premium = premium_valid
+
     st.session_state.usage_date = row.get("usage_date") or jakarta_today()
     st.session_state.daily_checks = int(row.get("daily_checks") or 0)
     st.session_state.history = row.get("history") or []
 
     if refresh_daily_quota():
         save_user_to_supabase()
-
 
 def ensure_current_profile():
     """
@@ -1430,7 +1459,28 @@ def notify(message, icon="✅"):
     else:
         st.success(message)
 
+def refresh_premium_access():
+    """Pastikan status Premium di session tidak bertahan setelah masa aktif habis."""
+    if not st.session_state.get("is_premium"):
+        return False
+    expires_raw = st.session_state.get("premium_expires_at")
+    if not expires_raw:
+        st.session_state.is_premium = False
+        return False
+    try:
+        expires_dt = datetime.fromisoformat(str(expires_raw).replace("Z", "+00:00"))
+        if expires_dt.tzinfo is None:
+            expires_dt = expires_dt.replace(tzinfo=ZoneInfo("Asia/Jakarta"))
+        valid = expires_dt > datetime.now(ZoneInfo("Asia/Jakarta"))
+        st.session_state.is_premium = valid
+        return valid
+    except (TypeError, ValueError):
+        st.session_state.is_premium = False
+        return False
+
+
 def can_start_check():
+    refresh_premium_access()
     if refresh_daily_quota():
         save_user_to_supabase()
 
@@ -2321,6 +2371,99 @@ def account_page():
             go("premium")
 
 
+def create_or_reuse_pending_order():
+    """Buat satu pesanan PENDING per sesi; gunakan kembali pesanan PENDING terbaru."""
+    if not is_authenticated():
+        return None, "Silakan login terlebih dahulu."
+
+    client = get_supabase_client()
+    if client is None:
+        return None, "Supabase belum terhubung. Periksa konfigurasi secrets."
+
+    # Hindari membuat order baru saat Streamlit rerun setelah order dibuat.
+    existing_id = st.session_state.get("pending_order_id")
+    if existing_id:
+        return existing_id, None
+
+    try:
+        # Reuse pesanan pending terbaru milik pengguna bila sesi sebelumnya ter-reset.
+        existing = (
+            client.table("orders")
+            .select("id,created_at")
+            .eq("user_id", st.session_state.auth_user_id)
+            .eq("amount", PREMIUM_PRICE)
+            .eq("payment_status", "PENDING")
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            order = existing.data[0]
+            st.session_state.pending_order_id = str(order["id"])
+            st.session_state.pending_order_created_at = order.get("created_at")
+            return st.session_state.pending_order_id, None
+
+        payload = {
+            "user_id": st.session_state.auth_user_id,
+            "amount": PREMIUM_PRICE,
+            "payment_status": "PENDING",
+            "created_at": datetime.now(ZoneInfo("Asia/Jakarta")).isoformat(),
+            "customer_email": normalize_email(st.session_state.auth_email),
+        }
+        created = client.table("orders").insert(payload).execute()
+        if not created.data:
+            return None, "Pesanan belum berhasil dibuat. Coba lagi."
+        order = created.data[0]
+        st.session_state.pending_order_id = str(order["id"])
+        st.session_state.pending_order_created_at = order.get("created_at")
+        return st.session_state.pending_order_id, None
+    except Exception:
+        return None, (
+            "Pesanan belum berhasil dibuat. Pastikan kebijakan RLS Supabase mengizinkan "
+            "pengguna membuat dan melihat pesanan miliknya sendiri."
+        )
+
+
+def activate_premium_code(code):
+    """Aktifkan Premium hanya melalui RPC tervalidasi di Supabase."""
+    if not is_authenticated():
+        return False, "Silakan login terlebih dahulu."
+    client = get_supabase_client()
+    if client is None:
+        return False, "Supabase belum terhubung. Coba lagi nanti."
+    if not str(code or "").strip():
+        return False, "Masukkan kode aktivasi terlebih dahulu."
+
+    try:
+        response = client.rpc(
+            "activate_worth_premium",
+            {"p_code": str(code).strip()},
+        ).execute()
+        result = response.data
+        if isinstance(result, list):
+            result = result[0] if result else None
+        if isinstance(result, str):
+            import json
+            result = json.loads(result)
+        if not isinstance(result, dict):
+            return False, "Respons aktivasi tidak dikenali. Hubungi admin WORTH."
+
+        if not result.get("success", False):
+            return False, str(result.get("message") or "Kode tidak valid atau belum diverifikasi.")
+
+        # Jangan percaya session state; muat ulang status dan expiry dari database.
+        profile = fetch_current_profile()
+        if not profile:
+            return False, "Kode diproses, tetapi profil tidak dapat dimuat ulang. Muat ulang aplikasi."
+        apply_supabase_user(profile)
+        if not st.session_state.is_premium:
+            return False, "Aktivasi tercatat, tetapi masa aktif Premium tidak valid. Hubungi admin."
+        st.session_state.premium_just_activated = True
+        return True, str(result.get("message") or "WORTH Premium berhasil diaktifkan.")
+    except Exception:
+        return False, "Aktivasi belum berhasil karena kendala koneksi atau konfigurasi Supabase."
+
+
 def premium_page():
     header("WORTH Premium")
 
@@ -2331,11 +2474,18 @@ def premium_page():
         )
         st.session_state.premium_just_activated = False
 
+    # Refresh status dari database setiap membuka halaman Premium.
+    profile = fetch_current_profile()
+    if profile:
+        apply_supabase_user(profile)
+
     if st.session_state.is_premium:
+        expiry = st.session_state.get("premium_expires_at")
+        expiry_text = escape(str(expiry or "-"))
         st.markdown(
             '<div class="premium-card"><b>Premium sudah aktif! 👑</b><br><br>'
             'Akunmu memiliki akses pengecekan tanpa batas, Riwayat Pengecekan, dan Perbandingan Produk.'
-            '</div>',
+            f'<br><br><span class="muted">Masa aktif berakhir: {expiry_text}</span></div>',
             unsafe_allow_html=True,
         )
         return
@@ -2348,46 +2498,65 @@ def premium_page():
         unsafe_allow_html=True,
     )
 
-    # Bagian pembayaran Premium saja; bagian aplikasi lainnya tetap.
     with st.expander("💗 Beli Premium melalui QRIS", expanded=True):
         st.markdown(
             '<div class="soft-card" style="margin-top:4px;">'
             '<b>Langkah pembayaran</b><br>'
-            '1. Bayar <b>Rp9.900</b> untuk akses Premium selama 1 bulan.<br>'
-            '2. Scan QRIS di bawah menggunakan aplikasi pembayaran yang mendukung QRIS.<br>'
-            '3. Setelah membayar, tekan tombol WhatsApp untuk mengirim konfirmasi pembayaran.<br>'
-            '4. Admin akan memeriksa transaksi yang masuk. Setelah terverifikasi, kode aktivasi dikirim melalui WhatsApp.'
+            '1. Buat pesanan Premium terlebih dahulu.<br>'
+            '2. Bayar <b>Rp9.900</b> dengan scan QRIS di bawah.<br>'
+            '3. Setelah membayar, kirim konfirmasi melalui WhatsApp dengan ID pesanan yang ditampilkan.<br>'
+            '4. Admin akan memeriksa pembayaran dan mengirim kode aktivasi setelah transaksi diverifikasi.'
             '</div>',
             unsafe_allow_html=True,
         )
 
-        qris_path = BASE_DIR / "worth_qris.jpeg"
-        if qris_path.exists():
-            st.image(str(qris_path), caption="QRIS pembayaran", use_container_width=True)
+        order_id = st.session_state.get("pending_order_id")
+        if not order_id:
+            if st.button(
+                "🧾 BUAT PESANAN PREMIUM",
+                type="primary",
+                use_container_width=True,
+                key="create_premium_order",
+            ):
+                order_id, order_error = create_or_reuse_pending_order()
+                if order_error:
+                    st.error(order_error)
+                else:
+                    st.rerun()
         else:
-            st.warning(
-                "File worth_qris.jpeg belum ditemukan. Simpan gambar QRIS yang diberikan "
-                "bersama file app.py dengan nama worth_qris.jpeg."
+            st.markdown("**ID Pesanan kamu:**")
+            st.code(order_id, language=None)
+            st.caption("Status awal: MENUNGGU PEMBAYARAN. Status hanya dapat diverifikasi oleh admin.")
+
+            qris_path = BASE_DIR / "worth_qris.jpeg"
+            if qris_path.exists():
+                st.image(str(qris_path), caption="QRIS pembayaran", use_container_width=True)
+            else:
+                st.warning(
+                    "File worth_qris.jpeg belum ditemukan. Simpan gambar QRIS bersama file app.py "
+                    "dengan nama worth_qris.jpeg."
+                )
+
+            wa_message = (
+                "Halo Admin WORTH?, saya ingin konfirmasi pembayaran Premium Rp9.900. "
+                f"ID pesanan: {order_id}. Saya akan mengirimkan bukti pembayaran untuk diverifikasi."
+            )
+            wa_url = "https://wa.me/6281249668160?text=" + __import__(
+                "urllib.parse", fromlist=["quote"]
+            ).quote(wa_message)
+            st.link_button(
+                "💬 KONFIRMASI PEMBAYARAN VIA WHATSAPP",
+                wa_url,
+                use_container_width=True,
+                type="primary",
             )
 
-        st.markdown(
-            "**Setelah membayar, konfirmasi ke admin WORTH?**  \n"
-            "Nominal: **Rp9.900**"
-        )
-        wa_message = "Halo Admin WORTH?, saya sudah membayar Premium Rp9.900. Berikut saya kirimkan bukti pembayaran untuk diverifikasi."
-        wa_url = "https://wa.me/6281249668160?text=" + __import__("urllib.parse", fromlist=["quote"]).quote(wa_message)
-        st.link_button(
-            "💬 KONFIRMASI PEMBAYARAN VIA WHATSAPP",
-            wa_url,
-            use_container_width=True,
-            type="primary",
-        )
-
-    st.markdown("**Sudah punya kode aktivasi?**")
+    st.markdown("**Sudah menerima kode aktivasi dari admin?**")
     code = st.text_input(
         "Masukkan Kode Premium",
         placeholder="Masukkan kode aktivasi",
         type="password",
+        key="premium_activation_code",
     )
 
     if st.button(
@@ -2395,23 +2564,16 @@ def premium_page():
         type="primary",
         use_container_width=True,
         disabled=not code.strip(),
+        key="activate_premium_rpc",
     ):
-        if code.strip() == PREMIUM_CODE:
-            st.session_state.is_premium = True
-            st.session_state.premium_activated_at = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
-
-            if save_user_to_supabase():
-                st.session_state.premium_just_activated = True
-                st.rerun()
-            else:
-                st.session_state.is_premium = False
-                st.session_state.premium_activated_at = None
-                st.error("Status Premium belum berhasil disimpan ke Supabase. Coba lagi.")
+        ok, message = activate_premium_code(code)
+        if ok:
+            st.session_state.premium_just_activated = True
+            st.rerun()
         else:
-            st.warning("Kode Premium tidak valid. Silakan periksa kembali kode yang dimasukkan.")
+            st.warning(message)
 
-    st.caption("Pembayaran dan verifikasi masih dilakukan secara manual pada tahap MVP.")
-
+    st.caption("Pembayaran diverifikasi secara manual oleh admin. Kode aktivasi hanya berlaku sesuai pesanan yang telah diverifikasi.")
 
 def history_page():
     header("Riwayat Pengecekan")
@@ -2661,5 +2823,6 @@ pages = {
     "about": about_page,
 }
 
+refresh_premium_access()
 ensure_valid_page_state()
 pages.get(st.session_state.page, home_page)()
