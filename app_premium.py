@@ -1081,6 +1081,77 @@ def save_user_to_supabase():
         return False
 
 
+def activate_premium_in_supabase():
+    """Aktifkan Premium untuk akun login dan pastikan hasilnya tersimpan.
+
+    Tidak memakai upsert(on_conflict=...) sehingga tidak membutuhkan
+    UNIQUE constraint tambahan pada tabel worth_users.
+    """
+    if not is_authenticated():
+        return False, "Silakan masuk ke akun WORTH terlebih dahulu."
+
+    client = get_supabase_client()
+    if client is None:
+        return False, "Supabase belum terhubung di aplikasi pelanggan."
+
+    try:
+        # Cegah menyimpan status ke akun berbeda jika sesi sudah kedaluwarsa.
+        auth_response = client.auth.get_user()
+        auth_user = getattr(auth_response, "user", None)
+        if auth_user is None or str(auth_user.id) != str(st.session_state.auth_user_id):
+            return False, "Sesi login sudah tidak sesuai. Silakan keluar dan masuk lagi."
+
+        user_id = str(auth_user.id)
+        activated_at = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
+        premium_data = {
+            "is_premium": True,
+            "premium_activated_at": activated_at,
+            "updated_at": activated_at,
+        }
+
+        # Perbarui baris profil yang ada; buat profil jika belum tersimpan.
+        existing = (
+            client.table("worth_users")
+            .select("user_id")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            (
+                client.table("worth_users")
+                .update(premium_data)
+                .eq("user_id", user_id)
+                .execute()
+            )
+        else:
+            new_profile = current_user_payload()
+            new_profile.update(premium_data)
+            client.table("worth_users").insert(new_profile).execute()
+
+        # Jangan tampilkan 'berhasil' jika Supabase belum mengembalikan true.
+        confirmed = (
+            client.table("worth_users")
+            .select("is_premium")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if not confirmed.data or confirmed.data[0].get("is_premium") is not True:
+            return False, "Status Premium belum tersimpan. Periksa izin dan sesi akun di Supabase."
+
+        st.session_state.is_premium = True
+        st.session_state.premium_activated_at = activated_at
+        return True, ""
+
+    except Exception as exc:
+        # Jangan tampilkan detail respons yang mungkin berisi data sensitif.
+        return False, (
+            "Penyimpanan Premium gagal di Supabase "
+            f"({type(exc).__name__}). Periksa koneksi dan log aplikasi."
+        )
+
+
 def fetch_current_profile():
     """Ambil profil milik pengguna yang sedang login."""
     if not is_authenticated():
@@ -2397,16 +2468,12 @@ def premium_page():
         disabled=not code.strip(),
     ):
         if code.strip().casefold() == PREMIUM_CODE.casefold():
-            st.session_state.is_premium = True
-            st.session_state.premium_activated_at = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
-
-            if save_user_to_supabase():
+            success, error_message = activate_premium_in_supabase()
+            if success:
                 st.session_state.premium_just_activated = True
                 st.rerun()
             else:
-                st.session_state.is_premium = False
-                st.session_state.premium_activated_at = None
-                st.error("Status Premium belum berhasil disimpan ke Supabase. Coba lagi.")
+                st.error(error_message)
         else:
             st.warning("Kode Premium tidak valid. Silakan periksa kembali kode yang dimasukkan.")
 
