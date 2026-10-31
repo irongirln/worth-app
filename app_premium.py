@@ -73,7 +73,7 @@ CONVICTION = {
 
 FREE_DAILY_LIMIT = 3
 PREMIUM_PRICE = 9900
-PREMIUM_CODE = "WORTH-PREM-2026"  # kode demo prototype
+PREMIUM_CODE = "WORTH-PREM-2026"  # kode bersama, dapat digunakan berulang oleh semua akun
 
 
 def jakarta_today():
@@ -970,27 +970,6 @@ div[class*="st-key-register_password_confirm"] button:active {
     color:#FFFFFF !important;
     outline:none !important;
     box-shadow:none !important;
-}
-
-
-/* FIX KHUSUS KOTAK ID PESANAN (st.code): warna terang & teks terbaca */
-div[data-testid="stCodeBlock"],
-div[data-testid="stCodeBlock"] pre,
-div[data-testid="stCodeBlock"] code {
-    background: #FFF9FC !important;
-    background-color: #FFF9FC !important;
-    color: #302630 !important;
-    -webkit-text-fill-color: #302630 !important;
-}
-div[data-testid="stCodeBlock"] pre {
-    border: 1px solid #E6A9BE !important;
-    border-radius: 12px !important;
-    overflow-wrap: anywhere !important;
-}
-div[data-testid="stCodeBlock"] code span,
-div[data-testid="stCodeBlock"] pre span {
-    color: #302630 !important;
-    -webkit-text-fill-color: #302630 !important;
 }
 
 </style>
@@ -2376,8 +2355,8 @@ def premium_page():
             '<b>Langkah pembayaran</b><br>'
             '1. Bayar <b>Rp9.900</b> untuk akses Premium selama 1 bulan.<br>'
             '2. Scan QRIS di bawah menggunakan aplikasi pembayaran yang mendukung QRIS.<br>'
-            '3. Setelah membayar, tekan tombol WhatsApp untuk mengirim konfirmasi pembayaran.<br>'
-            '4. Admin akan memeriksa transaksi yang masuk. Setelah terverifikasi, kode aktivasi dikirim melalui WhatsApp.'
+            '3. Jika membutuhkan bantuan pembayaran, hubungi admin melalui WhatsApp (opsional).<br>'
+            '4. Jika sudah memiliki kode Premium bersama, kamu bisa langsung mengaktifkannya tanpa persetujuan admin.'
             '</div>',
             unsafe_allow_html=True,
         )
@@ -2392,19 +2371,19 @@ def premium_page():
             )
 
         st.markdown(
-            "**Setelah membayar, konfirmasi ke admin WORTH?**  \n"
-            "Nominal: **Rp9.900**"
+            "**Bantuan pembayaran (opsional)**  \n"
+            "Nominal QRIS: **Rp9.900**"
         )
-        wa_message = "Halo Admin WORTH?, saya sudah membayar Premium Rp9.900. Berikut saya kirimkan bukti pembayaran untuk diverifikasi."
+        wa_message = "Halo Admin WORTH?, saya ingin bertanya tentang pembayaran Premium Rp9.900."
         wa_url = "https://wa.me/6281249668160?text=" + __import__("urllib.parse", fromlist=["quote"]).quote(wa_message)
         st.link_button(
-            "💬 KONFIRMASI PEMBAYARAN VIA WHATSAPP",
+            "💬 HUBUNGI ADMIN VIA WHATSAPP (OPSIONAL)",
             wa_url,
             use_container_width=True,
             type="primary",
         )
 
-    st.markdown("**Sudah punya kode aktivasi?**")
+    st.markdown("**Punya kode Premium? Aktifkan langsung tanpa konfirmasi admin.**")
     code = st.text_input(
         "Masukkan Kode Premium",
         placeholder="Masukkan kode aktivasi",
@@ -2417,7 +2396,7 @@ def premium_page():
         use_container_width=True,
         disabled=not code.strip(),
     ):
-        if code.strip() == PREMIUM_CODE:
+        if code.strip().casefold() == PREMIUM_CODE.casefold():
             st.session_state.is_premium = True
             st.session_state.premium_activated_at = datetime.now(ZoneInfo("Asia/Jakarta")).isoformat()
 
@@ -2431,7 +2410,7 @@ def premium_page():
         else:
             st.warning("Kode Premium tidak valid. Silakan periksa kembali kode yang dimasukkan.")
 
-    st.caption("Pembayaran dan verifikasi masih dilakukan secara manual pada tahap MVP.")
+    st.caption("Kode Premium bersama dapat dipakai berulang oleh semua akun WORTH. Kode ini tidak memeriksa pembayaran QRIS.")
 
 
 def history_page():
